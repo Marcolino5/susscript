@@ -55,7 +55,7 @@ TOTAL_HEADER = '''
 	\\caption{Resumo total} \\\\ \\hline
 	\\textbf{Diferença IVR} &
 	\\textbf{Atualização} &
-	\\textbf{Total devido}
+	\\textbf{Valor total devido}
 	\\endhead \\hline
 '''
 
@@ -70,7 +70,7 @@ YEAR_HEADER = '''
 	\\textbf{Ano} &
 	\\textbf{Diferença IVR} &
 	\\textbf{Atualização} &
-	\\textbf{Total devido}
+	\\textbf{Valor total devido}
 	\\endhead \\hline
 '''
 
