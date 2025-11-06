@@ -82,9 +82,9 @@ MONTH_HEADER = '''
 \\section{Resumo mensal}
 \\begin{longtable}[c]{|p{1.7cm}|p{2.6cm}|p{2.6cm}|p{2.3cm}|p{2.3cm}|c|}
 	\\caption{Resumo mês a mês} \\\\ \\hline
-	\\textbf{Mês do Crédito} &
+	\\textbf{Mês} &
 	\\textbf{Valor original pago pelo SUS} &
-	\\textbf{Diferença devida e não paga (R$) TUNEP} &
+	\\textbf{Diferença TUNEP} &
 	\\textbf{Atualização} &
 	\\textbf{Total devido}
 	\\endhead \\hline
