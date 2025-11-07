@@ -53,9 +53,9 @@ TOTAL_HEADER = '''
 \\section{Resumo Total}
 \\begin{longtable}[c]{|p{1.7cm}|p{2.6cm}|p{2.6cm}|p{2.3cm}|}
 	\\caption{Resumo total} \\\\ \\hline
-	\\textbf{Diferença IVR} &
+	\\textbf{Diferença devida e não paga} &
 	\\textbf{Atualização} &
-	\\textbf{Total devido}
+	\\textbf{Valor total devido}
 	\\endhead \\hline
 '''
 
@@ -68,9 +68,9 @@ YEAR_HEADER = '''
 \\begin{longtable}[c]{|p{1.7cm}|p{2.6cm}|p{2.6cm}|p{2.3cm}|}
 	\\caption{Resumo ano a ano} \\\\ \\hline
 	\\textbf{Ano} &
-	\\textbf{Diferença IVR} &
+	\\textbf{Diferença devida e não paga} &
 	\\textbf{Atualização} &
-	\\textbf{Total devido}
+	\\textbf{Valor total devido}
 	\\endhead \\hline
 '''
 
@@ -84,10 +84,10 @@ MONTH_HEADER = '''
 	\\caption{Resumo mês a mês} \\\\ \\hline
 	\\textbf{Mês} &
 	\\textbf{Valor original pago pelo SUS} &
-	\\textbf{Diferença IVR} &
+	\\textbf{Diferença devida e não paga} &
 	\\textbf{Atualização antes de 01/2022} &
 	\\textbf{Selic a partir de 01/2022} &
-	\\textbf{Total devido}
+	\\textbf{Valor total devido}
 	\\endhead \\hline
 '''
 
