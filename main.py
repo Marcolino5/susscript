@@ -1063,7 +1063,7 @@ class PdfBuilder:
         os.chdir(ProjPaths.SCRIPTS_DIR)
 
 
-def (system: str):
+def get_files(system: str):
     files = Downloads.find_files(
         system,
         ProjParams.get_state(),
