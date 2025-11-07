@@ -82,7 +82,7 @@ MONTH_HEADER = '''
 \\section{Resumo mensal}
 \\begin{longtable}[c]{|p{1.7cm}|p{2.6cm}|p{2.6cm}|p{2.3cm}|p{2.3cm}|p{2.3cm}|c|}
 	\\caption{Resumo mês a mês} \\\\ \\hline
-	\\textbf{Mês} &
+	\\textbf{Mês do Crédito} &
 	\\textbf{Valor original pago pelo SUS} &
 	\\textbf{Diferença devida e não paga} &
 	\\textbf{Atualização antes de 01/2022} &
