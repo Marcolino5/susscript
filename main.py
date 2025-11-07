@@ -780,8 +780,8 @@ class YearInfo:
 
     def add_month(self, m: MonthInfo):
         self.diff_then += m.debt_then()
-        self.diff_now += m.debt_now()
-        self.val_correcao += m.debt_now() - m.debt_then()
+        self.diff_now += m.expected # total
+        self.val_correcao += m.got # got
 
 
 class TotalInfo:
@@ -792,8 +792,8 @@ class TotalInfo:
 
     def add_month(self, m: MonthInfo):
         self.diff_then += m.debt_then()
-        self.diff_now += m.debt_now()
-        self.val_correcao += m.debt_now() - m.debt_then()
+        self.diff_now += m.expected # total
+        self.val_correcao += m.got # got
 
 
 class Processing:
