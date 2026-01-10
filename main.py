@@ -632,8 +632,8 @@ class Conversions:
         cnes = ProjParams.get_cnes()
 
         filename = path.split(file)[-1]
-        dbf_file_name = filename.replace(".dbc", ".dbf")
-        csv_file_name = filename.replace(".dbc", ".csv")
+        dbf_file_name = filename.lower().replace(".dbc", ".dbf")
+        csv_file_name = filename.lower().replace(".dbc", ".csv")
 
         csv_dir = PREFIX_CSV_DIR[filename[0:2]]
         dbf_dir = PREFIX_DBF_DIR[filename[0:2]]
@@ -643,8 +643,21 @@ class Conversions:
         csv_file_path = path.join(csv_dir, csv_file_name)
         sistema = PREFIX_SYSTEM[filename[0:2]]
 
+
+        #DEBUG DE CONVERSÃO
+        print(f"\n--- DEBUG CONVERSÃO para: {filename} ---")
+        print(f"Origem .DBC: {file}")
+        print(f"Destino .dbf: {dbf_file_path}")
+        print(f"Destino .csv: {csv_file_path}")
+
+        print("Rodando BLAST_DBF...")
         subprocess.run([ProjPaths.BLAST_DBF_PATH, file, dbf_file_path])
+        print("BLAST_DBF finalizado.")
+
+        print("Rodando DBF2CSV...")
         subprocess.run([ProjPaths.DBF2CSV_PATH, dbf_file_path, csv_file_path, cnes, sistema])
+        print("DBF2CSV finalizado.")
+        print("------------------------------------------\n")
 
     @staticmethod
     def unite_files(system: str):
@@ -688,11 +701,16 @@ class Tunep:
 
     @staticmethod
     def load_tunep():
-        sia_df = pd.read_csv(ProjPaths.SIA_TUNEP_TABLE_PATH, decimal=',',  thousands='.', usecols=np.array(['CO_PROCEDIMENTO', 'ValorTUNEP', 'TP_PROCEDIMENTO']), dtype={'CO_PROCEDIMENTO': str})
+        # add o 'Descricao' na lista e no dtype em sia e sih
+        sia_df = pd.read_csv(ProjPaths.SIA_TUNEP_TABLE_PATH, decimal=',',  thousands='.', usecols=np.array(['CO_PROCEDIMENTO', 'ValorTUNEP', 'TP_PROCEDIMENTO', 'Descricao']), dtype={'CO_PROCEDIMENTO': str, 'Descricao': str})
+
+        sia_df['CO_PROCEDIMENTO'] = sia_df['CO_PROCEDIMENTO'].str.strip().str.zfill(10)
         sia_df['ValorTUNEP'] = pd.to_numeric(sia_df['ValorTUNEP'], errors='coerce')
         Tunep.TABELA_DE_CONVERSAO_SIA = sia_df.set_index('CO_PROCEDIMENTO')
 
-        sih_df = pd.read_csv(ProjPaths.SIH_TUNEP_TABLE_PATH, decimal=',',  thousands='.', usecols=np.array(['CO_PROCEDIMENTO', 'ValorTUNEP', 'TP_PROCEDIMENTO']), dtype={'CO_PROCEDIMENTO': str})
+        sih_df = pd.read_csv(ProjPaths.SIH_TUNEP_TABLE_PATH, decimal=',',  thousands='.', usecols=np.array(['CO_PROCEDIMENTO', 'ValorTUNEP', 'TP_PROCEDIMENTO', 'Descricao']), dtype={'CO_PROCEDIMENTO': str, 'Descricao': str})
+
+        sih_df['CO_PROCEDIMENTO'] = sih_df['CO_PROCEDIMENTO'].str.strip().str.zfill(10)
         sih_df['ValorTUNEP'] = pd.to_numeric(sih_df['ValorTUNEP'], errors='coerce')
         Tunep.TABELA_DE_CONVERSAO_SIH = sih_df.set_index('CO_PROCEDIMENTO')
 
@@ -714,9 +732,27 @@ class Tunep:
             return final_value
         return None
 
+    @staticmethod
+    def get_description(code: str, system_type: str) -> str:
+        # Seleciona a tabela certa. Aceita tanto 'SIH' quanto 'Internação'
+        if system_type == 'Internação' or system_type == 'SIH': 
+            table = Tunep.TABELA_DE_CONVERSAO_SIH
+        else: 
+            table = Tunep.TABELA_DE_CONVERSAO_SIA
+        
+        try:
+            # Garante que o código de busca também tenha 10 dígitos
+            code_safe = str(code).strip().zfill(10)
+            row = table.loc[code]
+            # Se o código aparecer mais de uma vez na tabela (duplicado), pega primeira descrição
+            if isinstance(row, pd.DataFrame):
+                return str(row['Descricao'].iloc[0])
+            return str(row['Descricao'])
+        except:
+            return "Descrição não encontrada"
 
 class MonthInfo:
-    def __init__(self, when: Date, method: str, src: str, expected: float, got: float, rates: tuple[float, float, float]) -> None:
+    def __init__(self, when: Date, method: str, src: str, expected: float, got: float, rates: tuple[float, float, float], procedimentos: list = None) -> None:
         '''Importante: Os rates são divididos em nos seguintes 3 valores: taxa antes de 01-2022, taxa a partir de 01-2022 e compsição das duas taxas.'''
         self.when = when
         self.expected = expected
@@ -724,10 +760,11 @@ class MonthInfo:
         self.rates = rates
         self.method = method
         self.src = src
+        self.procedimentos = procedimentos if procedimentos is not None else [] # Salva a lista
 
     @classmethod
     def empty(cls, when: Date, method: str, rates: tuple[float, float, float]):
-        return cls(when, method, 'EMPTY', 0.0, 0.0, rates)
+        return cls(when, method, 'EMPTY', 0.0, 0.0, rates, [])
 
 
     def add_expect(self, src: str, expected: float):
@@ -747,7 +784,7 @@ class MonthInfo:
 
         self.got += got
 
-    def add_got_exp(self, src: str, got: float, expected: float):
+    def add_got_exp(self, src: str, got: float, expected: float, procedimentos: list = None):
         if self.src != src:
             if self.src == 'EMPTY':
                 self.src = src
@@ -755,6 +792,9 @@ class MonthInfo:
 
         self.got += got
         self.expected += expected
+
+        if procedimentos:
+            self.procedimentos.extend(procedimentos)
 
     def debt_then(self) -> float:
         return (self.expected - self.got)
@@ -799,11 +839,51 @@ class TotalInfo:
 class Processing:
     @staticmethod
     def month_SIA_IVR(file_path: str) -> MonthInfo:
-        df = pd.read_csv(file_path, usecols=SIA_RELEVANT_FIELDS)
+        #df = pd.read_csv(file_path, usecols=SIA_RELEVANT_FIELDS)
         when = Date.from_sus_file_name(file_path)
+    # Verificamos se o arquivo é 'antigo' (antes de 2008, aprox.)
+        print(f"{when.year}")
+        if when.year < 2008:
+            colunas_antigas = ['PA_DATREF', 'PA_CODPRO', 'PA_QTDAPR', 'PA_VALAPR']
+            try:
+                df = pd.read_csv(file_path, usecols=colunas_antigas, dtype=str)
+                df.rename(columns={'PA_DATREF': 'PA_CMP', 'PA_CODPRO': 'PA_PROC_ID'}, inplace=True)
+            except ValueError:
+                df = pd.DataFrame(columns=['PA_CMP', 'PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR'])
+        else:
+            df = pd.read_csv(file_path, usecols=SIA_RELEVANT_FIELDS, dtype=str)
+
+        if df.empty:
+            rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
+            return MonthInfo.empty(when, 'IVR', rate)
+
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
+        
+        # Limpa as colunas que usaremos para cálculos
+        df['PA_VALAPR'] = pd.to_numeric(df['PA_VALAPR'].str.strip(), errors='coerce').fillna(0)
+        df['PA_QTDAPR'] = pd.to_numeric(df['PA_QTDAPR'].str.strip(), errors='coerce').fillna(0) # Também limpa a Quantidade
+
+        
+        # 1. Calcula o valor devido (IVR) para CADA procedimento
+        # O valor IVR é 1.5 * o valor pago (PA_VALAPR)
+        df['VALOR_DEVIDO_IVR'] = df['PA_VALAPR'] * 1.5
+        
+        # Calcula os totais (agora baseados nas colunas limpas)
         brute_sum = df["PA_VALAPR"].sum()
-        return MonthInfo(when, 'IVR', 'SIA', brute_sum*1.5, brute_sum, rate)
+        expected_sum = df["VALOR_DEVIDO_IVR"].sum() # A soma dos valores devidos individuais
+        
+
+        # Selecionamos as colunas que queremos no laudo detalhado
+        colunas_detalhe = ['PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR', 'VALOR_DEVIDO_IVR']
+        procedimentos_lista = df[colunas_detalhe].to_dict('records')
+
+        # --- DEBUG: VERIFICA SE PEGOU ALGUMA COISA ---
+        print(f"DEBUG PYTHON: Encontrei {len(procedimentos_lista)} procedimentos para o mês {when}")
+        if len(procedimentos_lista) > 0:
+            print(f"Exemplo do primeiro item: {procedimentos_lista[0]}")
+        
+        #Passa a lista de procedimentos para o construtor da MonthInfo
+        return MonthInfo(when, 'IVR', 'SIA', expected_sum, brute_sum, rate, procedimentos_lista)
 
     @staticmethod
     def row_SIA_TUNEP(row: pd.Series):
@@ -909,7 +989,7 @@ class Processing:
             if not str(m.when) in months_info:
                 rate = InterestRate.complete_rate_split(m.when, ProjParams.END_INTEREST)
                 months_info[str(m.when)] = MonthInfo.empty(m.when, method, rate)
-            months_info[str(m.when)].add_got_exp('SIA', m.got, m.expected)
+            months_info[str(m.when)].add_got_exp('SIA', m.got, m.expected, m.procedimentos)
 
         for f_sih in sih_files:
             m = sih_func(f_sih)
@@ -1020,6 +1100,8 @@ class LatexBuilder:
 
         result += LatexBuilder.build_month_latex_table(months, template)
 
+        result += LatexBuilder.build_detailed_latex_table(months)
+
         result += template.FILE_FOOTER
 
         f = open(ProjPaths.LATEX_FILE_PATH, 'w')
@@ -1051,6 +1133,75 @@ class LatexBuilder:
         table_body += f"{report.diff_then:.2f} & {report.val_correcao:.2f} & {report.diff_now:.2f}"
         table_body += '\\\\ \\hline'
         return table_body + template.TOTAL_FOOTER
+    
+    @staticmethod
+    def build_detailed_latex_table(months: list[MonthInfo]) -> str:
+        # Layout Novo (Sem Tipo):
+        # Mês:1.5 | Cód:2.0 | Descrição:7.5 (Aumentou!) | Qtd:1.0 | Pago:2.5 | Devido:2.5
+        latex = r"""
+        \newpage
+        \section{Detalhamento dos Procedimentos}
+        \begin{longtable}[c]{|p{1.5cm}|p{2.0cm}|p{7.5cm}|p{1.0cm}|p{2.5cm}|p{2.5cm}|}
+        \caption{Detalhamento completo dos procedimentos} \\ \hline
+        \textbf{\centering Mês} & 
+        \textbf{\centering Cód.} & 
+        \textbf{\centering Descrição} & 
+        \textbf{\centering Qtd} & 
+        \textbf{\centering Pago (R\$)} & 
+        \textbf{\centering Devido (R\$)} \\ \hline
+        \endfirsthead
+
+        \hline
+        \textbf{\centering Mês} & 
+        \textbf{\centering Cód.} & 
+        \textbf{\centering Descrição} & 
+        \textbf{\centering Qtd} & 
+        \textbf{\centering Pago (R\$)} & 
+        \textbf{\centering Devido (R\$)} \\ \hline
+        \endhead
+        """
+        
+        total_linhas_processadas = 0
+        
+        for m in months:
+            if not hasattr(m, 'procedimentos') or not m.procedimentos:
+                continue
+            
+            print(f"DEBUG LATEX: Adicionando {len(m.procedimentos)} linhas para o mês {m.when}...")
+
+            for p in m.procedimentos:
+                code = p.get('PA_PROC_ID', p.get('SP_ATOPROF', '?'))
+                tipo_display = p.get('TIPO_SISTEMA', '-')
+                
+                # Busca a descrição com o novo método mais seguro
+                descricao = Tunep.get_description(code, tipo_display)
+                descricao = descricao.replace('&', '\\&').replace('%', '\\%').replace('_', '\\_')
+                
+                try:
+                    qtd = int(p.get('PA_QTDAPR', p.get('SP_QTD_ATO', 0)))
+                    paid = float(p.get('PA_VALAPR', p.get('SP_VALATO', 0.0)))
+                    due = float(p.get('VALOR_DEVIDO_IVR', 0.0))
+                except:
+                    continue
+
+                # Removemos a coluna do meio (Tipo)
+                latex += (
+                    f"{{\\centering {m.when}}} & "
+                    f"{{\\centering {code}}} & "
+                    f"{{\\raggedright \\scriptsize {descricao}}} & "
+                    f"{{\\centering {qtd}}} & "
+                    f"{{\\raggedleft {paid:.2f}}} & "
+                    f"{{\\raggedleft {due:.2f}}} \\\\ \\hline \n"
+                )
+                
+                total_linhas_processadas += 1
+
+        latex += r"""
+        \end{longtable}
+        """
+        
+        print(f"DEBUG LATEX: Tabela gerada com um total de {total_linhas_processadas} linhas.")
+        return latex
 
 
 class PdfBuilder:
