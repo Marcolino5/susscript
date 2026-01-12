@@ -1221,7 +1221,14 @@ class Processing:
         # --- LÓGICA NOVA (>= 2008) ---
         else:
             # Filtro padrão: Lê o CSV e filtra pelo CNES passado no parâmetro
-            df = pd.read_csv(file_path, usecols=colunas_sih, dtype=str)
+            df = pd.read_csv(
+                file_path,
+                encoding='latin1',
+                sep=';',
+                engine='python',
+                dtype=str
+            )
+            df = df[[c for c in colunas_sih if c in df.columns]]
             if 'CNES' in df.columns:
                  # Remove zeros a esquerda para comparar (ex: "000123" == "123")
                  cnes_param = ProjParams.CNES.lstrip('0')
