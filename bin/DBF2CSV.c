@@ -171,9 +171,15 @@ void process_entry_n(FILE *dbf_file, FILE *csv_file, DBF_INFO *dbf_info, uint32_
         str_subs(cell_buffer, ',', '.', 30);
 
         // Agora ele compara usando o índice correto que encontramos
-        if (i == cnes_col_index && strncmp((char*) cell_buffer, cnes, 7)) {
-            free(cell_buffer); // Libera a memória antes de sair
-            return; // Se o CNES não corresponde, ignora o registro
+        if (i == cnes_col_index) {
+            // Se o argumento passado for "TODOS", IGNORA o filtro e deixa passar tudo
+            if (strcmp(cnes, "TODOS") != 0) {
+                // Se NÃO for "TODOS", aplica o filtro rigoroso
+                if (strncmp((char*) cell_buffer, cnes, 7) != 0) {
+                    free(cell_buffer); 
+                    return; // Se o código não bate, joga a linha fora
+                }
+            }
         }
 
         // Processa o campo
