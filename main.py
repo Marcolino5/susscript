@@ -1573,7 +1573,6 @@ def main():
     InterestRate.load_selic()
     InterestRate.show_selic()
     Tunep.load_tunep()
-    LegacyMatcher.load_references()
 
     if (ProjParams.SYSTEM == 'SIA' or ProjParams.SYSTEM == 'BOTH'):
         get_files('SIA')
