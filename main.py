@@ -695,7 +695,7 @@ class Conversions:
         data_frames: list[pd.DataFrame] = []
         found_filled_data_frame = False
         for file in csv_files:
-            df = pd.read_csv(file)
+            df = pd.read_csv(file, encoding='latin1', sep=';', engine='python', dtype=str)
             if df.empty:
                 continue
             data_frames.append(df)
