@@ -350,7 +350,6 @@ class ProjParams:
     RAZAO_SOCIAL: str = "Razão Social"
     NOME_FANTASIA: str = "Nome Fantasia"
     NUMERO_PROCESSO: str = "Número Processo"
-    CNPJ: str = ""
 
     @staticmethod
     def init():
@@ -392,11 +391,6 @@ class ProjParams:
         ProjParams.NOME_FANTASIA = sys.argv[11]
         ProjParams.NUMERO_PROCESSO = sys.argv[12]
 
-        # Verifica se temos o 13º argumento (o CNPJ)
-        if len(sys.argv) > 13:
-            ProjParams.CNPJ = sys.argv[13]
-            print(f"DEBUG: CNPJ CAPTURADO COM SUCESSO: {ProjParams.CNPJ}")
-
 
     @staticmethod
     def get_start_date():
@@ -433,7 +427,6 @@ class ProjParams:
         print('cidade: ', ProjParams.CIDADE)
         print('método: ', ProjParams.METHOD)
         print('data citação', ProjParams.DATA_CIACAO)
-        print('CNPJ:', ProjParams.CNPJ)
 
 
 
@@ -537,8 +530,7 @@ class Downloads:
     def download_many(files: list[str]):
         PREFIX_LOCATION = {
         'PA': ProjPaths.SIA_DOWNLOAD_DIR,
-        'SP': ProjPaths.SIH_DOWNLOAD_DIR ,
-        'RD': ProjPaths.SIH_DOWNLOAD_DIR
+        'SP': ProjPaths.SIH_DOWNLOAD_DIR 
         }
         ftp = FTP("ftp.datasus.gov.br")
         ftp.login()
@@ -586,7 +578,7 @@ class Downloads:
             def append_to_file(file: str):
                 file = file.split(' ')[-1]
 
-                if file[0:2] != search_prefix and not (sistema == 'SIH' and file[0:2] == 'RD'):
+                if file[0:2] != search_prefix:
                     return
 
                 if file[2:4] != estado:
@@ -624,36 +616,24 @@ class Conversions:
 
     @staticmethod
     def convert_file_to_csv(file: str):
-        # Os arquivos antigos de internação geralmente começam com RD, e não SP
         PREFIX_SYSTEM = {
         'PA': 'SIA',
-        'SP': 'SIH',
-        'RD': 'SIH'
+        'SP': 'SIH'
         }
         PREFIX_CSV_DIR = {
         'PA': ProjPaths.SIA_CSVS_DIR,
-        'SP': ProjPaths.SIH_CSVS_DIR,
-        'RD': ProjPaths.SIH_CSVS_DIR
+        'SP': ProjPaths.SIH_CSVS_DIR
         }
         PREFIX_DBF_DIR = {
         'PA': ProjPaths.SIA_DBFS_DIR,
         'SP': ProjPaths.SIH_DBFS_DIR,
-        'RD': ProjPaths.SIH_DBFS_DIR
         }
 
         cnes = ProjParams.get_cnes()
 
         filename = path.split(file)[-1]
-
-        # para os antigos, tivemos que baixar tudo
-        try:
-            if Date.from_sus_file_name(filename).year < 2008:
-                cnes = "TODOS"
-        except:
-            pass
-        # ------------------------------------------------------------
-        dbf_file_name = filename.lower().replace(".dbc", ".dbf")
-        csv_file_name = filename.lower().replace(".dbc", ".csv")
+        dbf_file_name = filename.replace(".dbc", ".dbf")
+        csv_file_name = filename.replace(".dbc", ".csv")
 
         csv_dir = PREFIX_CSV_DIR[filename[0:2]]
         dbf_dir = PREFIX_DBF_DIR[filename[0:2]]
@@ -663,115 +643,58 @@ class Conversions:
         csv_file_path = path.join(csv_dir, csv_file_name)
         sistema = PREFIX_SYSTEM[filename[0:2]]
 
-
-        #DEBUG DE CONVERSÃO
-        print(f"\n--- DEBUG CONVERSÃO para: {filename} ---")
-        print(f"Origem .DBC: {file}")
-        print(f"Destino .dbf: {dbf_file_path}")
-        print(f"Destino .csv: {csv_file_path}")
-
-        print("Rodando BLAST_DBF...")
         subprocess.run([ProjPaths.BLAST_DBF_PATH, file, dbf_file_path])
-        print("BLAST_DBF finalizado.")
-
-        print("Rodando DBF2CSV...")
         subprocess.run([ProjPaths.DBF2CSV_PATH, dbf_file_path, csv_file_path, cnes, sistema])
-        print("DBF2CSV finalizado.")
-        print("------------------------------------------\n")
 
     @staticmethod
     def unite_files(system: str):
         PREFIX_CSV_DIR = {
-            'SIA': ProjPaths.SIA_CSVS_DIR,
-            'SIH': ProjPaths.SIH_CSVS_DIR
+        'SIA': ProjPaths.SIA_CSVS_DIR,
+        'SIH': ProjPaths.SIH_CSVS_DIR
         }
 
         csv_dir = PREFIX_CSV_DIR[system]
 
-        # Lista apenas arquivos CSV
-        csv_files = [path.join(csv_dir, f) for f in os.listdir(csv_dir) if f.endswith('.csv')]
+        csv_files = os.listdir(csv_dir)
+        csv_files = [path.join(csv_dir, file) for file in csv_files]
+
 
         data_frames: list[pd.DataFrame] = []
         found_filled_data_frame = False
-        
-        # Estratégias de leitura para evitar "Could not determine delimiter"
-        strategies = [
-            {'sep': None, 'engine': 'python'},  
-            {'sep': ',', 'engine': 'c'},        
-            {'sep': ';', 'engine': 'c'}         
-        ]
-        
         for file in csv_files:
-            df = pd.DataFrame()
-            
-            # Tenta ler o arquivo com as 3 estratégias
-            for strat in strategies:
-                try:
-                    temp_df = pd.read_csv(file, encoding='latin1', dtype=str, **strat)
-                    # Se leu colunas, sucesso!
-                    if not temp_df.empty and len(temp_df.columns) > 1:
-                        df = temp_df
-                        break
-                except Exception:
-                    continue # Tenta a próxima estratégia silenciosamente
-
+            df = pd.read_csv(file)
             if df.empty:
-                
                 continue
-
-            try:
-                # Padroniza colunas (Remove espaços e põe maiúsculo)
-                df.columns = [c.strip().upper() for c in df.columns]
-                
-                data_frames.append(df)
-                found_filled_data_frame = True
-            except Exception as e:
-                print(f"Erro ao processar colunas de {file}: {e}")
-                continue
+            data_frames.append(df)
+            found_filled_data_frame = True
 
         if not found_filled_data_frame:
-            print(f"No valid entries found for {system}.")
+            print("No entries were found the specified period.")
             return
 
-        # Junta tudo
         union = pd.concat(data_frames, ignore_index=True)
+
         union.to_csv(path.join(ProjPaths.UNITED_CSV_DIR, f'{system}.csv'), index=False)
 
-        print(f"{system} files united")
+        print(system, ' files united')
+
 
 class Tunep:
     TABELA_DE_CONVERSAO_SIA: pd.DataFrame
     TABELA_DE_CONVERSAO_SIH: pd.DataFrame
-    TABELA_GERAL: pd.DataFrame = None # tabela do rep do rafa
 
     _TYPE_MAPPING = {'SIA': 'A', 'SIH': 'H'}
 
 
     @staticmethod
     def load_tunep():
-        # add o 'Descricao' na lista e no dtype em sia e sih
-        sia_df = pd.read_csv(ProjPaths.SIA_TUNEP_TABLE_PATH, decimal=',',  thousands='.', usecols=np.array(['CO_PROCEDIMENTO', 'ValorTUNEP', 'TP_PROCEDIMENTO', 'Descricao']), dtype={'CO_PROCEDIMENTO': str, 'Descricao': str})
-
-        sia_df['CO_PROCEDIMENTO'] = sia_df['CO_PROCEDIMENTO'].str.strip().str.zfill(10)
+        sia_df = pd.read_csv(ProjPaths.SIA_TUNEP_TABLE_PATH, decimal=',',  thousands='.', usecols=np.array(['CO_PROCEDIMENTO', 'ValorTUNEP', 'TP_PROCEDIMENTO']), dtype={'CO_PROCEDIMENTO': str})
         sia_df['ValorTUNEP'] = pd.to_numeric(sia_df['ValorTUNEP'], errors='coerce')
         Tunep.TABELA_DE_CONVERSAO_SIA = sia_df.set_index('CO_PROCEDIMENTO')
 
-        sih_df = pd.read_csv(ProjPaths.SIH_TUNEP_TABLE_PATH, decimal=',',  thousands='.', usecols=np.array(['CO_PROCEDIMENTO', 'ValorTUNEP', 'TP_PROCEDIMENTO', 'Descricao']), dtype={'CO_PROCEDIMENTO': str, 'Descricao': str})
-
-        sih_df['CO_PROCEDIMENTO'] = sih_df['CO_PROCEDIMENTO'].str.strip().str.zfill(10)
+        sih_df = pd.read_csv(ProjPaths.SIH_TUNEP_TABLE_PATH, decimal=',',  thousands='.', usecols=np.array(['CO_PROCEDIMENTO', 'ValorTUNEP', 'TP_PROCEDIMENTO']), dtype={'CO_PROCEDIMENTO': str})
         sih_df['ValorTUNEP'] = pd.to_numeric(sih_df['ValorTUNEP'], errors='coerce')
         Tunep.TABELA_DE_CONVERSAO_SIH = sih_df.set_index('CO_PROCEDIMENTO')
-
-        try:
-            caminho_geral = os.path.join('tables', 'desc_procedimento.csv')
-            # Lê apenas código e nome da tabela nova
-            geral_df = pd.read_csv(caminho_geral, usecols=['CO_PROCEDIMENTO', 'NO_PROCEDIMENTO'], dtype=str)
-            geral_df['CO_PROCEDIMENTO'] = geral_df['CO_PROCEDIMENTO'].str.strip().str.zfill(10)
-            Tunep.TABELA_GERAL = geral_df.set_index('CO_PROCEDIMENTO')
-            print("Tabela geral de procedimentos carregada com sucesso.")
-        except Exception as e:
-            print(f"Aviso: Não foi possível carregar desc_procedimento.csv: {e}")
-            Tunep.TABELA_GERAL = pd.DataFrame()
 
 
     @staticmethod
@@ -779,12 +702,7 @@ class Tunep:
         TABLE_MAPPING = {'SIA': Tunep.TABELA_DE_CONVERSAO_SIA, 'SIH': Tunep.TABELA_DE_CONVERSAO_SIH}
         try: row = TABLE_MAPPING[procedure_type].loc[code]
         except: return None
-        # Correção para evitar erro se retornar DataFrame em vez de Series
-        if isinstance(row, pd.DataFrame):
-             found_value = row['ValorTUNEP'].iloc[0]
-        else:
-             found_value = row['ValorTUNEP']
-             
+        found_value = row['ValorTUNEP']
         return float(found_value)
 
 
@@ -796,38 +714,9 @@ class Tunep:
             return final_value
         return None
 
-    @staticmethod
-    def get_description(code: str, system_type: str) -> str:
-        #Tenta nas tabelas antigas (SIA/SIH)
-        if system_type == 'Internação' or system_type == 'SIH': 
-            table = Tunep.TABELA_DE_CONVERSAO_SIH
-        else: 
-            table = Tunep.TABELA_DE_CONVERSAO_SIA
-        
-        code_safe = str(code).strip().zfill(10)
-
-        try:
-            #Tenta buscar na tabela principal
-            row = table.loc[code_safe]
-            if isinstance(row, pd.DataFrame):
-                return str(row['Descricao'].iloc[0])
-            return str(row['Descricao'])
-            
-        except:
-            #Se falhar, tenta na TABELA GERAL
-            if Tunep.TABELA_GERAL is not None and not Tunep.TABELA_GERAL.empty:
-                try:
-                    row_geral = Tunep.TABELA_GERAL.loc[code_safe]
-                    if isinstance(row_geral, pd.DataFrame):
-                        return str(row_geral['NO_PROCEDIMENTO'].iloc[0])
-                    return str(row_geral['NO_PROCEDIMENTO'])
-                except:
-                    pass # Falhou nas duas
-            
-            return "Descrição não encontrada"
 
 class MonthInfo:
-    def __init__(self, when: Date, method: str, src: str, expected: float, got: float, rates: tuple[float, float, float], procedimentos: list = None) -> None:
+    def __init__(self, when: Date, method: str, src: str, expected: float, got: float, rates: tuple[float, float, float]) -> None:
         '''Importante: Os rates são divididos em nos seguintes 3 valores: taxa antes de 01-2022, taxa a partir de 01-2022 e compsição das duas taxas.'''
         self.when = when
         self.expected = expected
@@ -835,11 +724,10 @@ class MonthInfo:
         self.rates = rates
         self.method = method
         self.src = src
-        self.procedimentos = procedimentos if procedimentos is not None else [] # Salva a lista
 
     @classmethod
     def empty(cls, when: Date, method: str, rates: tuple[float, float, float]):
-        return cls(when, method, 'EMPTY', 0.0, 0.0, rates, [])
+        return cls(when, method, 'EMPTY', 0.0, 0.0, rates)
 
 
     def add_expect(self, src: str, expected: float):
@@ -859,7 +747,7 @@ class MonthInfo:
 
         self.got += got
 
-    def add_got_exp(self, src: str, got: float, expected: float, procedimentos: list = None):
+    def add_got_exp(self, src: str, got: float, expected: float):
         if self.src != src:
             if self.src == 'EMPTY':
                 self.src = src
@@ -867,9 +755,6 @@ class MonthInfo:
 
         self.got += got
         self.expected += expected
-
-        if procedimentos:
-            self.procedimentos.extend(procedimentos)
 
     def debt_then(self) -> float:
         return (self.expected - self.got)
@@ -895,8 +780,8 @@ class YearInfo:
 
     def add_month(self, m: MonthInfo):
         self.diff_then += m.debt_then()
-        self.diff_now += m.debt_now()
-        self.val_correcao += m.debt_now() - m.debt_then()
+        self.diff_now += m.expected # total
+        self.val_correcao += m.got # got
 
 
 class TotalInfo:
@@ -907,248 +792,18 @@ class TotalInfo:
 
     def add_month(self, m: MonthInfo):
         self.diff_then += m.debt_then()
-        self.diff_now += m.debt_now()
-        self.val_correcao += m.debt_now() - m.debt_then()
+        self.diff_now += m.expected # total
+        self.val_correcao += m.got # got
 
 
-class LegacyMatcher:
-    # Cache para não ler o arquivo toda hora
-    REF_SIA = None
-    REF_SIH = None
-
-    @staticmethod
-    def load_references():
-        """Carrega as tabelas de referência na memória uma única vez."""
-        if LegacyMatcher.REF_SIA is not None and LegacyMatcher.REF_SIH is not None:
-            return
-
-        print("   [LegacyMatcher] Carregando tabelas de referência (Modo Compatibilidade)...")
-        
-        # Caminhos dos arquivos
-        path_sia = path.join("tables", "antigos", ProjParams.STATE, f"ref_sia_{ProjParams.STATE.lower()}.csv")
-        path_sih = path.join("tables", "antigos", ProjParams.STATE, f"ref_sih_{ProjParams.STATE.lower()}.csv")
-
-        # Configuração de Leitura:
-        # header=2 -> Pula as 2 primeiras linhas de lixo (TabWin) e pega o cabeçalho na linha 3
-        # index_col=0 -> Usa a primeira coluna (suja com CNPJ+Nome) como índice para busca
-        try:
-            if path.exists(path_sia):
-                LegacyMatcher.REF_SIA = pd.read_csv(path_sia, sep=None, engine='python', header=2, index_col=0, dtype=str)
-            else:
-                print(f"   [AVISO] Tabela SIA não encontrada: {path_sia}")
-
-            if path.exists(path_sih):
-                LegacyMatcher.REF_SIH = pd.read_csv(path_sih, sep=None, engine='python', header=2, index_col=0, dtype=str)
-            else:
-                print(f"   [AVISO] Tabela SIH não encontrada: {path_sih}")
-                
-        except Exception as e:
-            print(f"   [ERRO CRÍTICO] Falha ao carregar tabelas REF: {e}")
-
-    @staticmethod
-    def get_expected_total(system: str, date_obj: Date, identifier_cnpj: str) -> float:
-        # Garante que as tabelas estejam carregadas
-        LegacyMatcher.load_references()
-        
-        if system == 'SIA': 
-            df = LegacyMatcher.REF_SIA
-        else: 
-            df = LegacyMatcher.REF_SIH
-            
-        if df is None: 
-            print("   [ERRO] Tabela de referência não carregada.")
-            return 0.0
-
-        # Deixa apenas números: '00.112...' -> '00112288000196'
-        cnpj_target_clean = ''.join(filter(str.isdigit, identifier_cnpj))
-        
-        if len(cnpj_target_clean) < 8:
-            return 0.0
-
-        match_idx = None
-        
-        # Itera sobre o índice (que contém a string suja 'CNPJ-NOME')
-        for idx in df.index:
-            raw_text = str(idx).upper()
-            
-            # Limpa a linha do CSV para ver se os números do CNPJ estão lá
-            clean_text = raw_text.replace('.', '').replace('/', '').replace('-', '').replace(' ', '')
-            
-            if cnpj_target_clean in clean_text:
-                match_idx = idx
-                print(f"   [REF] Hospital encontrado: '{raw_text[:50]}...'") # Mostra só o começo
-                break
-        
-        if not match_idx:
-            print(f"   [AVISO] CNPJ {identifier_cnpj} não encontrado na referência {system}.")
-            return 0.0
-            
-        hospital_row = df.loc[match_idx]
-
-        meses_pt = {1:'Jan', 2:'Fev', 3:'Mar', 4:'Abr', 5:'Mai', 6:'Jun', 7:'Jul', 8:'Ago', 9:'Set', 10:'Out', 11:'Nov', 12:'Dez'}
-        
-        # Gera as variações de nome de coluna (TabWin exporta de vários jeitos)
-        possible_cols = [
-            f"{meses_pt[date_obj.month]}/{str(date_obj.year)[2:]}", # Jan/95 (Mais comum)
-            f"{meses_pt[date_obj.month]}/{date_obj.year}",          # Jan/1995
-            f"{meses_pt[date_obj.month].upper()}/{str(date_obj.year)[2:]}", # JAN/95
-            f"{date_obj.month:02d}/{date_obj.year}"                 # 01/1995
-        ]
-        
-        found_col = None
-        # Procura qual coluna existe no DataFrame
-        for col_try in possible_cols:
-            # Busca case-insensitive
-            match = next((c for c in df.columns if str(c).strip().lower() == col_try.lower()), None)
-            if match:
-                found_col = match
-                break
-        
-        if found_col:
-            raw_val = hospital_row[found_col]
-            
-            if pd.isna(raw_val) or str(raw_val).strip() in ['-', '', 'nan']: 
-                return 0.0
-            
-            # Limpa formatação de dinheiro
-            val_str = str(raw_val).replace('R$', '').replace(' ', '')
-            if ',' in val_str and '.' in val_str: # 1.000,00
-                val_str = val_str.replace('.', '').replace(',', '.')
-            elif ',' in val_str: # 1000,00
-                val_str = val_str.replace(',', '.')
-                
-            try:
-                val = float(val_str)
-                # print(f"   [REF] Meta Financeira ({found_col}): R$ {val:.2f}")
-                return val
-            except:
-                return 0.0
-        
-        return 0.0
-
-    @staticmethod
-    def identify_legacy_code(df: pd.DataFrame, target_val: float) -> str:
-        if df.empty: return None
-        
-        # Tenta achar a coluna de ID
-        id_col = None
-        for col in ['CNES', 'CGC_HOSP', 'PA_CODUNI', 'COD_UNI', 'PRESTADOR']:
-            if col in df.columns:
-                id_col = col
-                break
-                
-        if id_col is None:
-            # Se não achou pelo nome, pega a primeira coluna
-            id_col = df.columns[0]
-
-        # Tenta achar a coluna de VALOR
-        val_col = None
-        for col in ['VAL_TOT', 'PA_VALAPR', 'VAL_PROD', 'VALOR']:
-            if col in df.columns:
-                val_col = col
-                break
-        
-        if val_col is None: return None
-
-        # Garante numérico
-        df[val_col] = pd.to_numeric(df[val_col], errors='coerce').fillna(0)
-        
-        # Soma por hospital
-        totais = df.groupby(id_col)[val_col].sum()
-        
-        # Procura o match exato (com pequena tolerância de centavos)
-        for code, total in totais.items():
-            diff = abs(total - target_val)
-            if diff < 0.10: # 10 centavos de diferença aceitável
-                print(f"MATCH CONFIRMADO! Código {code} (R$ {total:.2f})")
-                return code
-                
-        # Se não achou, mostra o mais perto (debug)
-        if not totais.empty:
-            closest_code = (totais - target_val).abs().idxmin()
-            # print(f" Sem match exato. Mais próximo: {closest_code} (R$ {totais[closest_code]:.2f})")
-            
-        return None
-    
 class Processing:
     @staticmethod
     def month_SIA_IVR(file_path: str) -> MonthInfo:
-        #df = pd.read_csv(file_path, usecols=SIA_RELEVANT_FIELDS)
+        df = pd.read_csv(file_path, usecols=SIA_RELEVANT_FIELDS)
         when = Date.from_sus_file_name(file_path)
-        print(f"Processando mês: {when}")
-
-        #PROCESSAMENTO DE ARQUIVOS ANTIGOS
-
-        if when.year < 2008:
-            colunas_antigas = ['PA_DATREF', 'PA_CODPRO', 'PA_QTDAPR', 'PA_VALAPR', 'PA_CODUNI']
-            try:
-                #Lê o arquivo CSV completo (gerado com filtro "TODOS")
-                df = pd.read_csv(file_path, usecols=colunas_antigas, dtype=str)
-                df.rename(columns={'PA_DATREF': 'PA_CMP', 'PA_CODPRO': 'PA_PROC_ID'}, inplace=True)
-                
-                # Converte para números AGORA, pois o LegacyMatcher precisa somar
-                df['PA_VALAPR'] = pd.to_numeric(df['PA_VALAPR'].str.strip(), errors='coerce').fillna(0)
-                df['PA_QTDAPR'] = pd.to_numeric(df['PA_QTDAPR'].str.strip(), errors='coerce').fillna(0)
-
-                #Busca o valor total esperado na tabela Excel (Gabarito)
-                target_val = LegacyMatcher.get_expected_total('SIA', when, ProjParams.CNPJ)
-                
-                #Descobre qual código (PA_CODUNI) tem essa soma no arquivo
-                legacy_code = LegacyMatcher.identify_legacy_code(df, target_val)
-                
-                if legacy_code:
-                    #Filtra mantendo apenas as linhas do hospital encontrado
-                    df = df[df['PA_CODUNI'] == legacy_code]
-                    print(f"DEBUG: Filtrado {len(df)} linhas para o código antigo {legacy_code}")
-                else:
-                    # Se não achou match, zera o dataframe
-                    df = pd.DataFrame(columns=df.columns)
-
-            except ValueError:
-                df = pd.DataFrame(columns=['PA_CMP', 'PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR'])
-            except Exception as e:
-                print(f"Erro no processamento legado: {e}")
-                df = pd.DataFrame(columns=['PA_CMP', 'PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR'])
-
-        #PROCESSAMENTO DE ARQUIVOS RECENTES (>= 2008)
-        # Aqui o filtro por CNES já foi feito ou é padrão
-        else:
-            df = pd.read_csv(file_path, usecols=SIA_RELEVANT_FIELDS, dtype=str)
-            
-            # Limpa as colunas numéricas
-            df['PA_VALAPR'] = pd.to_numeric(df['PA_VALAPR'].str.strip(), errors='coerce').fillna(0)
-            df['PA_QTDAPR'] = pd.to_numeric(df['PA_QTDAPR'].str.strip(), errors='coerce').fillna(0)
-
-
-        
-        if df.empty:
-            rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
-            return MonthInfo.empty(when, 'IVR', rate)
-
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
-        
-        # 1. Calcula o valor devido (IVR) para CADA procedimento
-        df['VALOR_DEVIDO_IVR'] = df['PA_VALAPR'] * 1.5
-        
-        # Calcula os totais
         brute_sum = df["PA_VALAPR"].sum()
-        expected_sum = df["VALOR_DEVIDO_IVR"].sum()
-        
-        # Selecionamos as colunas que queremos no laudo detalhado
-        colunas_detalhe = ['PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR', 'VALOR_DEVIDO_IVR']
-        
-        # Adiciona coluna auxiliar para busca de descrição depois
-        df['TIPO_SISTEMA'] = 'SIA'
-        
-        procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
-
-        #VERIFICA SE PEGOU ALGUMA COISA
-        print(f"DEBUG PYTHON: Encontrei {len(procedimentos_lista)} procedimentos para o mês {when}")
-        if len(procedimentos_lista) > 0:
-            print(f"Exemplo do primeiro item: {procedimentos_lista[0]}")
-        
-        #Passa a lista de procedimentos para o construtor da MonthInfo
-        return MonthInfo(when, 'IVR', 'SIA', expected_sum, brute_sum, rate, procedimentos_lista)
+        return MonthInfo(when, 'IVR', 'SIA', brute_sum*1.5, brute_sum, rate)
 
     @staticmethod
     def row_SIA_TUNEP(row: pd.Series):
@@ -1210,7 +865,8 @@ class Processing:
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
         brute_sum = df["SP_VALATO"].sum()
         return MonthInfo(when, 'IVR', 'SIH', brute_sum*1.5, brute_sum, rate)
-    
+
+
     @staticmethod
     def month_SIH_TUNEP(file_path: str) -> MonthInfo:
         df = pd.read_csv(file_path, usecols=SIH_RELEVANT_FIELDS, dtype={'SP_ATOPROF': 'str', 'SP_QTD_ATO': 'int'})
@@ -1253,7 +909,7 @@ class Processing:
             if not str(m.when) in months_info:
                 rate = InterestRate.complete_rate_split(m.when, ProjParams.END_INTEREST)
                 months_info[str(m.when)] = MonthInfo.empty(m.when, method, rate)
-            months_info[str(m.when)].add_got_exp('SIA', m.got, m.expected, m.procedimentos)
+            months_info[str(m.when)].add_got_exp('SIA', m.got, m.expected)
 
         for f_sih in sih_files:
             m = sih_func(f_sih)
@@ -1364,8 +1020,6 @@ class LatexBuilder:
 
         result += LatexBuilder.build_month_latex_table(months, template)
 
-        result += LatexBuilder.build_detailed_latex_table(months)
-
         result += template.FILE_FOOTER
 
         f = open(ProjPaths.LATEX_FILE_PATH, 'w')
@@ -1377,7 +1031,7 @@ class LatexBuilder:
     def build_month_latex_table(months: list[MonthInfo], template: ModuleType) -> str:
         table_body = template.MONTH_HEADER
         for m in months:
-            table_body += f"{m.when} & {m.got:.2f} & {m.debt_then():.2f} & {(m.rates[0]*100)-100:.4f}\\% & {(m.rates[1]*100)-100:.4f}\\% & {m.debt_now():.2f}"
+            table_body += f"{m.when} & {m.debt_then():.2f} & {m.got:.2f} & {m.expected:.2f}"
             table_body += '\\\\ \\hline'
         return table_body + template.MONTH_FOOTER
 
@@ -1397,75 +1051,6 @@ class LatexBuilder:
         table_body += f"{report.diff_then:.2f} & {report.val_correcao:.2f} & {report.diff_now:.2f}"
         table_body += '\\\\ \\hline'
         return table_body + template.TOTAL_FOOTER
-    
-    @staticmethod
-    def build_detailed_latex_table(months: list[MonthInfo]) -> str:
-        # Layout Novo (Sem Tipo):
-        # Mês:1.5 | Cód:2.0 | Descrição:7.5 (Aumentou!) | Qtd:1.0 | Pago:2.5 | Devido:2.5
-        latex = r"""
-        \newpage
-        \section{Detalhamento dos Procedimentos}
-        \begin{longtable}[c]{|p{1.5cm}|p{2.0cm}|p{7.5cm}|p{1.0cm}|p{2.5cm}|p{2.5cm}|}
-        \caption{Detalhamento completo dos procedimentos} \\ \hline
-        \textbf{\centering Mês} & 
-        \textbf{\centering Cód.} & 
-        \textbf{\centering Descrição} & 
-        \textbf{\centering Qtd} & 
-        \textbf{\centering Pago (R\$)} & 
-        \textbf{\centering Devido (R\$)} \\ \hline
-        \endfirsthead
-
-        \hline
-        \textbf{\centering Mês} & 
-        \textbf{\centering Cód.} & 
-        \textbf{\centering Descrição} & 
-        \textbf{\centering Qtd} & 
-        \textbf{\centering Pago (R\$)} & 
-        \textbf{\centering Devido (R\$)} \\ \hline
-        \endhead
-        """
-        
-        total_linhas_processadas = 0
-        
-        for m in months:
-            if not hasattr(m, 'procedimentos') or not m.procedimentos:
-                continue
-            
-            print(f"DEBUG LATEX: Adicionando {len(m.procedimentos)} linhas para o mês {m.when}...")
-
-            for p in m.procedimentos:
-                code = p.get('PA_PROC_ID', p.get('SP_ATOPROF', '?'))
-                tipo_display = p.get('TIPO_SISTEMA', '-')
-                
-                # Busca a descrição com o novo método mais seguro
-                descricao = Tunep.get_description(code, tipo_display)
-                descricao = descricao.replace('&', '\\&').replace('%', '\\%').replace('_', '\\_')
-                
-                try:
-                    qtd = int(p.get('PA_QTDAPR', p.get('SP_QTD_ATO', 0)))
-                    paid = float(p.get('PA_VALAPR', p.get('SP_VALATO', 0.0)))
-                    due = float(p.get('VALOR_DEVIDO_IVR', 0.0))
-                except:
-                    continue
-
-                # Removemos a coluna do meio (Tipo)
-                latex += (
-                    f"{{\\centering {m.when}}} & "
-                    f"{{\\centering {code}}} & "
-                    f"{{\\raggedright \\scriptsize {descricao}}} & "
-                    f"{{\\centering {qtd}}} & "
-                    f"{{\\raggedleft {paid:.2f}}} & "
-                    f"{{\\raggedleft {due:.2f}}} \\\\ \\hline \n"
-                )
-                
-                total_linhas_processadas += 1
-
-        latex += r"""
-        \end{longtable}
-        """
-        
-        print(f"DEBUG LATEX: Tabela gerada com um total de {total_linhas_processadas} linhas.")
-        return latex
 
 
 class PdfBuilder:
@@ -1497,10 +1082,9 @@ def get_files(system: str):
 # nesse modo de execução do programa, é gerado um laudo com qualquer dado que já esteja presente no programa.
 def test_mode():
     # arquivos a serem processados
-    sih_files = [path.join(ProjPaths.SIH_CSVS_DIR, file) for file in os.listdir(ProjPaths.SIH_CSVS_DIR) if file.endswith('.csv')]
-    sia_files = [path.join(ProjPaths.SIA_CSVS_DIR, file) for file in os.listdir(ProjPaths.SIA_CSVS_DIR) if file.endswith('.csv')]
-    sih_files.sort()
-    sia_files.sort()
+    sih_files = [path.join(ProjPaths.SIH_CSVS_DIR, file) for file in os.listdir(ProjPaths.SIH_CSVS_DIR)]
+    sia_files = [path.join(ProjPaths.SIA_CSVS_DIR, file) for file in os.listdir(ProjPaths.SIA_CSVS_DIR)]
+
     # processamento dos dadaos
     months = Processing.months(sia_files, sih_files, ProjParams.METHOD)
     years = Processing.year_results(months)
@@ -1519,8 +1103,11 @@ def main():
     ProjParams.test()
     InterestRate.load_selic()
     InterestRate.show_selic()
+<<<<<<< HEAD
+    Tunep.load_tunep() 
+=======
     Tunep.load_tunep()
-    LegacyMatcher.load_references()
+>>>>>>> 99d2cb359b7a74996993fff072868914df7bd6dd
 
     if (ProjParams.SYSTEM == 'SIA' or ProjParams.SYSTEM == 'BOTH'):
         get_files('SIA')
