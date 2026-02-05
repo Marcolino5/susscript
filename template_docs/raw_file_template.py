@@ -55,7 +55,7 @@ TOTAL_HEADER = '''
 	\\caption{Resumo total} \\\\ \\hline
 	\\textbf{Diferença IVR} &
 	\\textbf{Atualização} &
-	\\textbf{Valor total devido}
+	\\textbf{Total devido}
 	\\endhead \\hline
 '''
 
@@ -70,7 +70,7 @@ YEAR_HEADER = '''
 	\\textbf{Ano} &
 	\\textbf{Diferença IVR} &
 	\\textbf{Atualização} &
-	\\textbf{Valor total devido}
+	\\textbf{Total devido}
 	\\endhead \\hline
 '''
 
@@ -87,7 +87,7 @@ MONTH_HEADER = '''
 	\\textbf{Diferença IVR} &
 	\\textbf{Atualização antes de 01/2022} &
 	\\textbf{Selic a partir de 01/2022} &
-	\\textbf{Valor total devido}
+	\\textbf{Total devido}
 	\\endhead \\hline
 '''
 
