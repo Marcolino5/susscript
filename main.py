@@ -1205,8 +1205,8 @@ class Processing:
 
     @staticmethod
     def month_SIH_IVR(file_path: str) -> MonthInfo:
-        df = pd.read_csv(file_path, encoding="latin1", sep=';')
-        print(df.columns.tolist())
+        df = pd.read_csv(file_path, usecols=SIH_RELEVANT_FIELDS, encoding="latin1", sep=',')
+        print=(df.columns.tolist())
         when = Date.from_sus_file_name(file_path)
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
         brute_sum = df["SP_VALATO"].sum()
@@ -1214,7 +1214,7 @@ class Processing:
     
     @staticmethod
     def month_SIH_TUNEP(file_path: str) -> MonthInfo:
-        df = pd.read_csv(file_path, usecols=SIH_RELEVANT_FIELDS, dtype={'SP_ATOPROF': 'str', 'SP_QTD_ATO': 'int'}, encoding="latin1", sep=';')
+        df = pd.read_csv(file_path, usecols=SIH_RELEVANT_FIELDS, dtype={'SP_ATOPROF': 'str', 'SP_QTD_ATO': 'int'}, encoding="latin1", sep=',')
         when = Date.from_sus_file_name(file_path)
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
         res = df.apply(Processing.row_SIH_TUNEP, axis=1).sum()
@@ -1224,7 +1224,7 @@ class Processing:
 
     @staticmethod
     def month_SIH_IVR_TUNEP(file_path: str) -> MonthInfo:
-        df = pd.read_csv(file_path, usecols=SIH_RELEVANT_FIELDS, dtype={'SP_ATOPROF': 'str', 'SP_QTD_ATO': 'int'}, encoding="latin1", sep=';')
+        df = pd.read_csv(file_path, usecols=SIH_RELEVANT_FIELDS, dtype={'SP_ATOPROF': 'str', 'SP_QTD_ATO': 'int'}, encoding="latin1", sep=',')
         when = Date.from_sus_file_name(file_path)
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
         res = df.apply(Processing.row_SIH_IVR_TUNEP, axis=1, result_type='reduce').sum()
