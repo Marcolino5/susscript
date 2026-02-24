@@ -1205,7 +1205,9 @@ class Processing:
 
     @staticmethod
     def month_SIH_IVR(file_path: str) -> MonthInfo:
+        print("Processing file:", file_path)
         df = pd.read_csv(file_path, encoding="latin1", sep=',')
+        print("Columns found:", df.columns.tolist())
         df.columns = df.columns.str.strip()
         df = df[SIH_RELEVANT_FIELDS]
         print(df)
