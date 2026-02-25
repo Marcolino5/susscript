@@ -1527,9 +1527,7 @@ def test_mode():
 
 def main():
     ProjPaths.init()
-    ProjPaths.test()
     ProjParams.init()
-    ProjParams.test()
     InterestRate.load_selic()
     InterestRate.show_selic()
     Tunep.load_tunep()
