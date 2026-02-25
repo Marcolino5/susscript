@@ -1473,6 +1473,9 @@ class LatexBuilder:
                 )
                 
                 total_linhas_processadas += 1
+                # Mudar quando estiver consertado
+                if total_linhas_processadas >= 1500:
+                    break
 
         latex += r"""
         \end{longtable}
