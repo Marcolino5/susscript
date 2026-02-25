@@ -1267,8 +1267,7 @@ class Processing:
         for f_sih in sih_files:
             m = sih_func(f_sih)
 
-            if m is None:
-                continue
+            
             
             if str(m.when) not in months_info:
                 rate = InterestRate.complete_rate_split(m.when, ProjParams.END_INTEREST)
