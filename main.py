@@ -1540,7 +1540,6 @@ def main():
         get_files('SIA')
     if (ProjParams.SYSTEM == 'SIH' or ProjParams.SYSTEM == 'BOTH'):
         get_files('SIH')
-    return None
 
     Conversions.convert_files()
 
