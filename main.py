@@ -1268,7 +1268,8 @@ class Processing:
         for f_sih in sih_files:
             m = sih_func(f_sih)
 
-            
+            if not m:
+                continue
             
             if str(m.when) not in months_info:
                 rate = InterestRate.complete_rate_split(m.when, ProjParams.END_INTEREST)
@@ -1530,8 +1531,6 @@ def main():
     ProjPaths.test()
     ProjParams.init()
     ProjParams.test()
-    print(f"PARAMS escolhido: {ProjParams.SYSTEM}")
-    raise Exception("DEBUG STOP HERE")
     InterestRate.load_selic()
     InterestRate.show_selic()
     Tunep.load_tunep()
