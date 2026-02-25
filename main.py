@@ -1207,15 +1207,12 @@ class Processing:
     @staticmethod
     def month_SIH_IVR(file_path: str) -> MonthInfo:
         expected = set(SIH_RELEVANT_FIELDS)
-        print("Processing file:", file_path)
         df = pd.read_csv(file_path, encoding="latin1", sep=',')
-        print("Columns found:", df.columns.tolist())
         df.columns = df.columns.str.strip()
         if not expected.issubset(set(df.columns)):
             print("File does not match SIH schema:", file_path)
             return None
         df = df[SIH_RELEVANT_FIELDS]
-        print(df)
         when = Date.from_sus_file_name(file_path)
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
         brute_sum = df["SP_VALATO"].sum()
