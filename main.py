@@ -1212,7 +1212,7 @@ class Processing:
         df.columns = df.columns.str.strip()
         if not expected.issubset(set(df.columns)):
             print("File does not match SIH schema:", file_path)
-            return None
+            continue
         df = df[SIH_RELEVANT_FIELDS]
         print(df)
         when = Date.from_sus_file_name(file_path)
