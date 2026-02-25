@@ -1527,12 +1527,15 @@ def test_mode():
 
 def main():
     ProjPaths.init()
+    ProjPaths.test()
     ProjParams.init()
+    ProjParams.test()
     InterestRate.load_selic()
     InterestRate.show_selic()
     Tunep.load_tunep()
     LegacyMatcher.load_references()
 
+    print(ProjParams.SYSTEM)
     if (ProjParams.SYSTEM == 'SIA' or ProjParams.SYSTEM == 'BOTH'):
         get_files('SIA')
     if (ProjParams.SYSTEM == 'SIH' or ProjParams.SYSTEM == 'BOTH'):
