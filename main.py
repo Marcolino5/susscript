@@ -354,6 +354,7 @@ class ProjParams:
 
     @staticmethod
     def init():
+        print(f"argumentos do sistema: {sys.argv}")
         if sys.argv[1] == 'test':
             ProjParams.METHOD = 'TEST'
             ProjParams.CNES = sys.argv[2]
