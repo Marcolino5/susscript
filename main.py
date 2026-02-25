@@ -1212,7 +1212,7 @@ class Processing:
         df.columns = df.columns.str.strip()
         if not expected.issubset(set(df.columns)):
             print("File does not match SIH schema:", file_path)
-            continue
+            return None
         df = df[SIH_RELEVANT_FIELDS]
         print(df)
         when = Date.from_sus_file_name(file_path)
@@ -1266,7 +1266,11 @@ class Processing:
 
         for f_sih in sih_files:
             m = sih_func(f_sih)
-            if not str(m.when) in months_info:
+
+            if m is None:
+                continue
+            
+            if str(m.when) not in months_info:
                 rate = InterestRate.complete_rate_split(m.when, ProjParams.END_INTEREST)
                 months_info[str(m.when)] = MonthInfo.empty(m.when, method, rate)
             months_info[str(m.when)].add_got_exp('SIH', m.got, m.expected)
