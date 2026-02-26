@@ -100,9 +100,16 @@ class ProjPaths:
     @staticmethod
     def empty_dirs():
         ProjPaths.empty_latex_dir()
-        if os.path.exists(ProjPaths.DATA_ROOT):
-            shutil.rmtree(ProjPaths.DATA_ROOT)
-        os.makedirs(ProjPaths.DATA_ROOT)
+        if not os.path.exists(ProjPaths.DATA_ROOT):
+            os.makedirs(ProjPaths.DATA_ROOT)
+            return
+        for item in os.listdir(ProjPaths.DATA_ROOT):
+            item_path = os.path.join(ProjPaths.DATA_ROOT, item)
+    
+            if os.path.isfile(item_path) or os.path.islink(item_path):
+                os.remove(item_path)
+            else:
+                shutil.rmtree(item_path)
 
 
     @staticmethod
