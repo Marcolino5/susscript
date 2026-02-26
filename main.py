@@ -17,6 +17,7 @@ SIH_RELEVANT_FIELDS = np.array(['SP_AA', 'SP_MM','SP_ATOPROF', 'SP_QTD_ATO', 'SP
 
 # Class responsible for defining, sharing and creating the directories used in the program
 class ProjPaths:
+    
     SIA_DOWNLOAD_DIR: str = ""
     SIH_DOWNLOAD_DIR: str = ""
     BINARIES_DIR: str = ""
@@ -47,24 +48,36 @@ class ProjPaths:
 
     @staticmethod
     def define_paths():
-        ProjPaths.SCRIPTS_DIR = path.split(path.join(os.getcwd(), sys.argv[0]))[0]
-        ProjPaths.SIA_DOWNLOAD_DIR = path.join(ProjPaths.SCRIPTS_DIR, "sia_download")
-        ProjPaths.SIH_DOWNLOAD_DIR = path.join(ProjPaths.SCRIPTS_DIR, "sih_download")
-        ProjPaths.BINARIES_DIR = path.join(ProjPaths.SCRIPTS_DIR, "bin")
-        ProjPaths.SIA_DBFS_DIR = path.join(ProjPaths.SCRIPTS_DIR, "sia_dbf")
-        ProjPaths.SIH_DBFS_DIR = path.join(ProjPaths.SCRIPTS_DIR, "sih_dbf")
-        ProjPaths.SIA_CSVS_DIR = path.join(ProjPaths.SCRIPTS_DIR, "sia_csv")
-        ProjPaths.SIH_CSVS_DIR = path.join(ProjPaths.SCRIPTS_DIR, "sih_csv")
-        ProjPaths.RESULTS_DIR = path.join(ProjPaths.SCRIPTS_DIR, "results")
-        ProjPaths.UNITED_CSV_DIR = path.join(ProjPaths.SCRIPTS_DIR, "united_csv")
-        ProjPaths.TABLES_DIR = path.join(ProjPaths.SCRIPTS_DIR, "tables")
+        CODE_ROOT = os.getcwd()
+        DATA_ROOT = os.environ.get("DATA_ROOT", "/data")
+
+        ProjPaths.DATA_ROOT = DATA_ROOT
+        ProjPaths.SCRIPTS_DIR = CODE_ROOT
+    
+        # DATA (Volume)
+        ProjPaths.SIA_DOWNLOAD_DIR = path.join(DATA_ROOT, "sia_download")
+        ProjPaths.SIH_DOWNLOAD_DIR = path.join(DATA_ROOT, "sih_download")
+        ProjPaths.SIA_DBFS_DIR = path.join(DATA_ROOT, "sia_dbf")
+        ProjPaths.SIH_DBFS_DIR = path.join(DATA_ROOT, "sih_dbf")
+        ProjPaths.SIA_CSVS_DIR = path.join(DATA_ROOT, "sia_csv")
+        ProjPaths.SIH_CSVS_DIR = path.join(DATA_ROOT, "sih_csv")
+        ProjPaths.UNITED_CSV_DIR = path.join(DATA_ROOT, "united_csv")
+        ProjPaths.RESULTS_DIR = path.join(DATA_ROOT, "results")
+    
+        # CODE (Ephemeral is fine)
+        ProjPaths.BINARIES_DIR = path.join(CODE_ROOT, "bin")
+        ProjPaths.TABLES_DIR = path.join(CODE_ROOT, "tables")
+        ProjPaths.LATEX_DIR = path.join(CODE_ROOT, "latex")
+    
+        # Files
         ProjPaths.SELIC_TABLE_PATH = path.join(ProjPaths.TABLES_DIR, "selic.csv")
         ProjPaths.DBF2CSV_PATH = path.join(ProjPaths.BINARIES_DIR, "DBF2CSV")
         ProjPaths.BLAST_DBF_PATH = path.join(ProjPaths.BINARIES_DIR, "BLAST_DBF")
+    
         ProjPaths.MONTH_REPORT_PATH = path.join(ProjPaths.RESULTS_DIR, "month.csv")
         ProjPaths.YEAR_REPORT_PATH = path.join(ProjPaths.RESULTS_DIR, "year.csv")
         ProjPaths.TOTAL_REPORT_PATH = path.join(ProjPaths.RESULTS_DIR, "total.csv")
-        ProjPaths.LATEX_DIR = path.join(ProjPaths.SCRIPTS_DIR, "latex")
+    
         ProjPaths.LATEX_FILE_PATH = path.join(ProjPaths.LATEX_DIR, "laudo.tex")
         ProjPaths.SIA_TUNEP_TABLE_PATH = path.join(ProjPaths.TABLES_DIR, "tabela_tunep_sia.csv")
         ProjPaths.SIH_TUNEP_TABLE_PATH = path.join(ProjPaths.TABLES_DIR, "tabela_tunep_sih.csv")
@@ -86,11 +99,10 @@ class ProjPaths:
 
     @staticmethod
     def empty_dirs():
-        ProjPaths.empty_downloads_dir()
-        ProjPaths.empty_dbfs_dir()
-        ProjPaths.empty_csvs_dir()
-        ProjPaths.empty_results_dir()
         ProjPaths.empty_latex_dir()
+        if os.path.exists(ProjPaths.DATA_ROOT):
+            shutil.rmtree(ProjPaths.DATA_ROOT)
+        os.makedirs(ProjPaths.DATA_ROOT)
 
 
     @staticmethod
