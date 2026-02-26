@@ -48,8 +48,8 @@ class ProjPaths:
 
     @staticmethod
     def define_paths():
-        CODE_ROOT = os.getcwd()
         DATA_ROOT = os.environ.get("DATA_ROOT", "/data")
+        CODE_ROOT = path.split(path.join(os.getcwd(), sys.argv[0]))[0]
 
         ProjPaths.DATA_ROOT = DATA_ROOT
         ProjPaths.SCRIPTS_DIR = CODE_ROOT
