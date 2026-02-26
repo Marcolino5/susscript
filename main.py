@@ -239,6 +239,7 @@ class ProjPaths:
 
     @staticmethod
     def empty_latex_dir():
+        os.makedirs(ProjPaths.LATEX_DIR, exist_ok=True)
         files = os.listdir(ProjPaths.LATEX_DIR)
         for file in files:
             try:
