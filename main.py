@@ -1562,22 +1562,24 @@ def split_into_quarters(start_str, end_str):
     Each period has at most 3 months.
     """
 
-    start = datetime.strptime(start_str, "%m-%Y")
-    end = datetime.strptime(end_str, "%m-%Y")
+    start = datetime.datetime.strptime(start_str, "%m-%Y")
+    end = datetime.datetime.strptime(end_str, "%m-%Y")
+
+    if end < start:
+        raise ValueError("End date must be after start date")
 
     periods = []
-
     current = start
 
     while current <= end:
-        # calculate 3 months ahead
-        month = current.month - 1 + 2  # +2 because current counts as first month
+        # Add 2 months (current month counts as first)
+        month = current.month - 1 + 2
         year = current.year + month // 12
         month = month % 12 + 1
 
-        chunk_end = datetime(year, month, 1)
+        chunk_end = datetime.datetime(year, month, 1)
 
-        # if chunk_end exceeds final end, clamp it
+        # Clamp if exceeding final end
         if chunk_end > end:
             chunk_end = end
 
@@ -1586,18 +1588,15 @@ def split_into_quarters(start_str, end_str):
             chunk_end.strftime("%m-%Y")
         ))
 
-        # move to next month after chunk_end
-        month = chunk_end.month
-        year = chunk_end.year
-
-        if month == 12:
+        # Move to next month after chunk_end
+        if chunk_end.month == 12:
             next_month = 1
-            next_year = year + 1
+            next_year = chunk_end.year + 1
         else:
-            next_month = month + 1
-            next_year = year
+            next_month = chunk_end.month + 1
+            next_year = chunk_end.year
 
-        current = datetime(next_year, next_month, 1)
+        current = datetime.datetime(next_year, next_month, 1)
 
     return periods
 
