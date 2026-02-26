@@ -420,6 +420,7 @@ class ProjParams:
             ProjParams.CNPJ = sys.argv[13]
             print(f"DEBUG: CNPJ CAPTURADO COM SUCESSO: {ProjParams.CNPJ}")
 
+    @staticmethod
 
     @staticmethod
     def get_start_date():
@@ -428,6 +429,14 @@ class ProjParams:
     @staticmethod
     def get_end_date():
         return ProjParams.END
+
+    @staticmethod
+    def set_start_date(date: Date):
+        ProjParams.START = Date.from_string(str(date))
+
+    @staticmethod
+    def set_end_date(date: Date):
+        ProjParams.END = Date.from_string(str(date))
 
     @staticmethod
     def get_cnes():
@@ -1546,34 +1555,89 @@ def test_mode():
     LatexBuilder.build_latex_file(months, years, total, ProjParams.METHOD)    
     PdfBuilder.write_pdf(path.join(ProjPaths.RESULTS_DIR, 'laudo.pdf'))
 
+def split_into_quarters(start_str, end_str):
+    """
+    start_str and end_str format: MM-YYYY
+    Returns list of tuples: [(start_MM-YYYY, end_MM-YYYY), ...]
+    Each period has at most 3 months.
+    """
 
+    start = datetime.strptime(start_str, "%m-%Y")
+    end = datetime.strptime(end_str, "%m-%Y")
+
+    periods = []
+
+    current = start
+
+    while current <= end:
+        # calculate 3 months ahead
+        month = current.month - 1 + 2  # +2 because current counts as first month
+        year = current.year + month // 12
+        month = month % 12 + 1
+
+        chunk_end = datetime(year, month, 1)
+
+        # if chunk_end exceeds final end, clamp it
+        if chunk_end > end:
+            chunk_end = end
+
+        periods.append((
+            current.strftime("%m-%Y"),
+            chunk_end.strftime("%m-%Y")
+        ))
+
+        # move to next month after chunk_end
+        month = chunk_end.month
+        year = chunk_end.year
+
+        if month == 12:
+            next_month = 1
+            next_year = year + 1
+        else:
+            next_month = month + 1
+            next_year = year
+
+        current = datetime(next_year, next_month, 1)
+
+    return periods
 
 def main():
+    months = []
+    if sys.argv[1] != 'TEST':
+        periods = split_into_quarters(sys.argv[5], sys.argv[6])
+    else:
+        periods = split_into_quarters(sys.argv[6], sys.argv[7])
     ProjPaths.init()
     ProjPaths.test()
     ProjParams.init()
-    ProjParams.test()
-    InterestRate.load_selic()
-    InterestRate.show_selic()
-    Tunep.load_tunep()
-    LegacyMatcher.load_references()
 
-    if (ProjParams.SYSTEM == 'SIA' or ProjParams.SYSTEM == 'BOTH'):
-        get_files('SIA')
-    if (ProjParams.SYSTEM == 'SIH' or ProjParams.SYSTEM == 'BOTH'):
-        get_files('SIH')
+    for period in periods:
+        ProjParams.set_start_date(period[0])
+        ProjParams.set_end_date(period[1])
+        ProjParams.test()
+        InterestRate.load_selic()
+        InterestRate.show_selic()
+        Tunep.load_tunep()
+        LegacyMatcher.load_references()
 
-    Conversions.convert_files()
+        if (ProjParams.SYSTEM == 'SIA' or ProjParams.SYSTEM == 'BOTH'):
+            get_files('SIA')
+        if (ProjParams.SYSTEM == 'SIH' or ProjParams.SYSTEM == 'BOTH'):
+            get_files('SIH')
 
-    if (ProjParams.SYSTEM == 'SIA' or ProjParams.SYSTEM == 'BOTH'):
-        Conversions.unite_files('SIA')
-    if (ProjParams.SYSTEM == 'SIH' or ProjParams.SYSTEM == 'BOTH'):
-        Conversions.unite_files('SIH')
+        Conversions.convert_files()
 
-    sih_files = [path.join(ProjPaths.SIH_CSVS_DIR, file) for file in os.listdir(ProjPaths.SIH_CSVS_DIR)]
-    sia_files = [path.join(ProjPaths.SIA_CSVS_DIR, file) for file in os.listdir(ProjPaths.SIA_CSVS_DIR)]
+        if (ProjParams.SYSTEM == 'SIA' or ProjParams.SYSTEM == 'BOTH'):
+            Conversions.unite_files('SIA')
+        if (ProjParams.SYSTEM == 'SIH' or ProjParams.SYSTEM == 'BOTH'):
+            Conversions.unite_files('SIH')
 
-    months = Processing.months(sia_files, sih_files, ProjParams.METHOD)
+        sih_files = [path.join(ProjPaths.SIH_CSVS_DIR, file) for file in os.listdir(ProjPaths.SIH_CSVS_DIR)]
+        sia_files = [path.join(ProjPaths.SIA_CSVS_DIR, file) for file in os.listdir(ProjPaths.SIA_CSVS_DIR)]
+
+        months += Processing.months(sia_files, sih_files, ProjParams.METHOD)
+        ProjParams.empty_dirs()
+        ProjPaths.create_paths()
     years = Processing.year_results(months)
     total = Processing.total_result(months)
 
