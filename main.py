@@ -43,8 +43,8 @@ class ProjPaths:
     @staticmethod
     def init():
         ProjPaths.define_paths()
-        ProjPaths.create_paths()
         ProjPaths.empty_dirs()
+        ProjPaths.create_paths()
 
     @staticmethod
     def define_paths():
