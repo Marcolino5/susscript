@@ -62,12 +62,12 @@ class ProjPaths:
         ProjPaths.SIA_CSVS_DIR = path.join(DATA_ROOT, "sia_csv")
         ProjPaths.SIH_CSVS_DIR = path.join(DATA_ROOT, "sih_csv")
         ProjPaths.UNITED_CSV_DIR = path.join(DATA_ROOT, "united_csv")
-        ProjPaths.RESULTS_DIR = path.join(DATA_ROOT, "results")
     
         # CODE (Ephemeral is fine)
         ProjPaths.BINARIES_DIR = path.join(CODE_ROOT, "bin")
         ProjPaths.TABLES_DIR = path.join(CODE_ROOT, "tables")
         ProjPaths.LATEX_DIR = path.join(CODE_ROOT, "latex")
+        ProjPaths.RESULTS_DIR = path.join(CODE_ROOT, "results")
     
         # Files
         ProjPaths.SELIC_TABLE_PATH = path.join(ProjPaths.TABLES_DIR, "selic.csv")
@@ -100,6 +100,7 @@ class ProjPaths:
     @staticmethod
     def empty_dirs():
         ProjPaths.empty_latex_dir()
+        ProjPaths.empty_results_dir()
         if not os.path.exists(ProjPaths.DATA_ROOT):
             os.makedirs(ProjPaths.DATA_ROOT)
             return
@@ -287,6 +288,7 @@ class ProjPaths:
 
     @staticmethod
     def empty_results_dir():
+        os.makedirs(ProjPaths.RESULTS_DIR, exist_ok=True)
         files = os.listdir(ProjPaths.RESULTS_DIR)
         for file in files:
             try:
