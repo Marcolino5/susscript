@@ -1635,7 +1635,7 @@ def main():
         sia_files = [path.join(ProjPaths.SIA_CSVS_DIR, file) for file in os.listdir(ProjPaths.SIA_CSVS_DIR)]
 
         months += Processing.months(sia_files, sih_files, ProjParams.METHOD)
-        ProjParams.empty_dirs()
+        ProjPaths.empty_dirs()
         ProjPaths.create_paths()
     years = Processing.year_results(months)
     total = Processing.total_result(months)
