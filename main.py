@@ -1555,11 +1555,11 @@ def test_mode():
     LatexBuilder.build_latex_file(months, years, total, ProjParams.METHOD)    
     PdfBuilder.write_pdf(path.join(ProjPaths.RESULTS_DIR, 'laudo.pdf'))
 
-def split_into_quarters(start_str, end_str):
+def split_into_bimesters(start_str, end_str):
     """
-    start_str and end_str format: MM-YYYY
-    Returns list of tuples: [(start_MM-YYYY, end_MM-YYYY), ...]
-    Each period has at most 3 months.
+    Splits a period into 2-month chunks.
+    Input format: MM-YYYY
+    Returns: list of tuples [(start_MM-YYYY, end_MM-YYYY), ...]
     """
 
     start = datetime.datetime.strptime(start_str, "%m-%Y")
@@ -1572,14 +1572,14 @@ def split_into_quarters(start_str, end_str):
     current = start
 
     while current <= end:
-        # Add 2 months (current month counts as first)
-        month = current.month - 1 + 2
+        # Add 1 month (current counts as first)
+        month = current.month - 1 + 1
         year = current.year + month // 12
         month = month % 12 + 1
 
         chunk_end = datetime.datetime(year, month, 1)
 
-        # Clamp if exceeding final end
+        # Clamp if beyond final end
         if chunk_end > end:
             chunk_end = end
 
@@ -1603,9 +1603,9 @@ def split_into_quarters(start_str, end_str):
 def main():
     months = []
     if sys.argv[1] != 'TEST':
-        periods = split_into_quarters(sys.argv[5], sys.argv[6])
+        periods = split_into_bimesters(sys.argv[5], sys.argv[6])
     else:
-        periods = split_into_quarters(sys.argv[6], sys.argv[7])
+        periods = split_into_bimesters(sys.argv[6], sys.argv[7])
     ProjPaths.init()
     ProjPaths.test()
     ProjParams.init()
