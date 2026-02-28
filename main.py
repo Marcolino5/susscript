@@ -703,11 +703,11 @@ class Conversions:
         print(f"Destino .csv: {csv_file_path}")
 
         print("Rodando BLAST_DBF...")
-        subprocess.run([ProjPaths.BLAST_DBF_PATH, file, dbf_file_path])
+        subprocess.run([ProjPaths.BLAST_DBF_PATH, file, dbf_file_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         print("BLAST_DBF finalizado.")
 
         print("Rodando DBF2CSV...")
-        subprocess.run([ProjPaths.DBF2CSV_PATH, dbf_file_path, csv_file_path, cnes, sistema])
+        subprocess.run([ProjPaths.DBF2CSV_PATH, dbf_file_path, csv_file_path, cnes, sistema], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         print("DBF2CSV finalizado.")
         print("------------------------------------------\n")
 
@@ -1517,7 +1517,7 @@ class PdfBuilder:
     @staticmethod
     def write_pdf(dst: str):
         os.chdir(ProjPaths.LATEX_DIR)
-        result = subprocess.run(["xelatex", path.split(ProjPaths.LATEX_FILE_PATH)[-1]], timeout=15*60)
+        result = subprocess.run(["xelatex", path.split(ProjPaths.LATEX_FILE_PATH)[-1]], timeout=15*60, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         result.check_returncode() #raise error in fail condition
         shutil.move("laudo.pdf", dst)
         os.chdir(ProjPaths.SCRIPTS_DIR)
