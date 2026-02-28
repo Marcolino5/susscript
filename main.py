@@ -745,8 +745,8 @@ class Conversions:
         except Exception as e:
             print(f"Erro processando {file}: {e}")
 
-   @staticmethod
-def unite_files(system: str):
+    @staticmethod
+    def unite_files(system: str):
     PREFIX_CSV_DIR = {
         'SIA': ProjPaths.SIA_CSVS_DIR,
         'SIH': ProjPaths.SIH_CSVS_DIR
