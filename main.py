@@ -698,65 +698,79 @@ class Conversions:
         subprocess.run([ProjPaths.BLAST_DBF_PATH, file, dbf_file_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         subprocess.run([ProjPaths.DBF2CSV_PATH, dbf_file_path, csv_file_path, cnes, sistema], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    @staticmethod
-    def unite_files(system: str):
-        PREFIX_CSV_DIR = {
-            'SIA': ProjPaths.SIA_CSVS_DIR,
-            'SIH': ProjPaths.SIH_CSVS_DIR
-        }
+@staticmethod
+def unite_files(system: str):
+    PREFIX_CSV_DIR = {
+        'SIA': ProjPaths.SIA_CSVS_DIR,
+        'SIH': ProjPaths.SIH_CSVS_DIR
+    }
 
-        csv_dir = PREFIX_CSV_DIR[system]
+    csv_dir = PREFIX_CSV_DIR[system]
+    output_path = path.join(ProjPaths.UNITED_CSV_DIR, f'{system}.csv')
 
-        # Lista apenas arquivos CSV
-        csv_files = [path.join(csv_dir, f) for f in os.listdir(csv_dir) if f.endswith('.csv')]
+    csv_files = [
+        path.join(csv_dir, f)
+        for f in os.listdir(csv_dir)
+        if f.endswith('.csv')
+    ]
 
-        data_frames: list[pd.DataFrame] = []
-        found_filled_data_frame = False
-        
-        # Estratégias de leitura para evitar "Could not determine delimiter"
-        strategies = [
-            {'sep': None, 'engine': 'python'},  
-            {'sep': ',', 'engine': 'c'},        
-            {'sep': ';', 'engine': 'c'}         
-        ]
-        
-        for file in csv_files:
-            df = pd.DataFrame()
-            
-            # Tenta ler o arquivo com as 3 estratégias
-            for strat in strategies:
-                try:
-                    temp_df = pd.read_csv(file, encoding='latin1', dtype=str, **strat)
-                    # Se leu colunas, sucesso!
-                    if not temp_df.empty and len(temp_df.columns) > 1:
-                        df = temp_df
-                        break
-                except Exception:
-                    continue # Tenta a próxima estratégia silenciosamente
+    strategies = [
+        {'sep': None, 'engine': 'python'},
+        {'sep': ',', 'engine': 'c'},
+        {'sep': ';', 'engine': 'c'}
+    ]
 
-            if df.empty:
-                
-                continue
+    first_write = True
+    found_filled_data_frame = False
 
+    for file in csv_files:
+        df = pd.DataFrame()
+
+        # Try the 3 read strategies
+        for strat in strategies:
             try:
-                # Padroniza colunas (Remove espaços e põe maiúsculo)
-                df.columns = [c.strip().upper() for c in df.columns]
-                
-                data_frames.append(df)
-                found_filled_data_frame = True
-            except Exception as e:
-                print(f"Erro ao processar colunas de {file}: {e}")
+                temp_df = pd.read_csv(
+                    file,
+                    encoding='latin1',
+                    dtype=str,
+                    **strat
+                )
+                if not temp_df.empty and len(temp_df.columns) > 1:
+                    df = temp_df
+                    break
+            except Exception:
                 continue
 
-        if not found_filled_data_frame:
-            print(f"No valid entries found for {system}.")
-            return
+        if df.empty:
+            continue
 
-        # Junta tudo
-        union = pd.concat(data_frames, ignore_index=True)
-        union.to_csv(path.join(ProjPaths.UNITED_CSV_DIR, f'{system}.csv'), index=False)
+        try:
+            # Normalize columns
+            df.columns = [c.strip().upper() for c in df.columns]
 
-        print(f"{system} files united")
+            # Write incrementally instead of accumulating
+            df.to_csv(
+                output_path,
+                mode='w' if first_write else 'a',
+                header=first_write,
+                index=False
+            )
+
+            first_write = False
+            found_filled_data_frame = True
+
+            # Optional but recommended: free memory immediately
+            del df
+
+        except Exception as e:
+            print(f"Erro ao processar {file}: {e}")
+            continue
+
+    if not found_filled_data_frame:
+        print(f"No valid entries found for {system}.")
+        return
+
+    print(f"{system} files united")
 
 class Tunep:
     TABELA_DE_CONVERSAO_SIA: pd.DataFrame
