@@ -645,118 +645,181 @@ class Downloads:
 class Conversions:
     @staticmethod
     def convert_files():
-        sia_files = os.listdir(ProjPaths.SIA_DOWNLOAD_DIR)
-        sih_files = os.listdir(ProjPaths.SIH_DOWNLOAD_DIR)
-        path_to_files_sia = [path.join(ProjPaths.SIA_DOWNLOAD_DIR, file) for file in sia_files]
-        path_to_files_sih = [path.join(ProjPaths.SIH_DOWNLOAD_DIR, file) for file in sih_files]
-        path_to_files = path_to_files_sia + path_to_files_sih
-
+        sia_files = [
+            path.join(ProjPaths.SIA_DOWNLOAD_DIR, f)
+            for f in os.listdir(ProjPaths.SIA_DOWNLOAD_DIR)
+            if f.endswith('.dbc')
+        ]
+    
+        sih_files = [
+            path.join(ProjPaths.SIH_DOWNLOAD_DIR, f)
+            for f in os.listdir(ProjPaths.SIH_DOWNLOAD_DIR)
+            if f.endswith('.dbc')
+        ]
+    
+        path_to_files = sia_files + sih_files
+    
+        if not path_to_files:
+            print("No DBC files to convert.")
+            return
+    
         with Pool(processes=ProjConfigs.N_OF_THREADS) as p:
             p.map(Conversions.convert_file_to_csv, path_to_files)
 
-    @staticmethod
+   @staticmethod
     def convert_file_to_csv(file: str):
-        # Os arquivos antigos de internação geralmente começam com RD, e não SP
+    
         PREFIX_SYSTEM = {
-        'PA': 'SIA',
-        'SP': 'SIH',
-        'RD': 'SIH'
+            'PA': 'SIA',
+            'SP': 'SIH',
+            'RD': 'SIH'
         }
+    
         PREFIX_CSV_DIR = {
-        'PA': ProjPaths.SIA_CSVS_DIR,
-        'SP': ProjPaths.SIH_CSVS_DIR,
-        'RD': ProjPaths.SIH_CSVS_DIR
+            'PA': ProjPaths.SIA_CSVS_DIR,
+            'SP': ProjPaths.SIH_CSVS_DIR,
+            'RD': ProjPaths.SIH_CSVS_DIR
         }
+    
         PREFIX_DBF_DIR = {
-        'PA': ProjPaths.SIA_DBFS_DIR,
-        'SP': ProjPaths.SIH_DBFS_DIR,
-        'RD': ProjPaths.SIH_DBFS_DIR
+            'PA': ProjPaths.SIA_DBFS_DIR,
+            'SP': ProjPaths.SIH_DBFS_DIR,
+            'RD': ProjPaths.SIH_DBFS_DIR
         }
-
-        cnes = ProjParams.get_cnes()
-
-        filename = path.split(file)[-1]
-
-        # para os antigos, tivemos que baixar tudo
+    
         try:
-            if Date.from_sus_file_name(filename).year < 2008:
-                cnes = "TODOS"
-        except:
-            pass
-        # ------------------------------------------------------------
-        dbf_file_name = filename.lower().replace(".dbc", ".dbf")
-        csv_file_name = filename.lower().replace(".dbc", ".csv")
-
-        csv_dir = PREFIX_CSV_DIR[filename[0:2]]
-        dbf_dir = PREFIX_DBF_DIR[filename[0:2]]
-
-
-        dbf_file_path = path.join(dbf_dir, dbf_file_name)
-        csv_file_path = path.join(csv_dir, csv_file_name)
-        sistema = PREFIX_SYSTEM[filename[0:2]]
-
-        subprocess.run([ProjPaths.BLAST_DBF_PATH, file, dbf_file_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.run([ProjPaths.DBF2CSV_PATH, dbf_file_path, csv_file_path, cnes, sistema], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-    @staticmethod
-    def unite_files(system: str):
-        PREFIX_CSV_DIR = {
-            'SIA': ProjPaths.SIA_CSVS_DIR,
-            'SIH': ProjPaths.SIH_CSVS_DIR
-        }
-
-        csv_dir = PREFIX_CSV_DIR[system]
-
-        # Lista apenas arquivos CSV
-        csv_files = [path.join(csv_dir, f) for f in os.listdir(csv_dir) if f.endswith('.csv')]
-
-        data_frames: list[pd.DataFrame] = []
-        found_filled_data_frame = False
-        
-        # Estratégias de leitura para evitar "Could not determine delimiter"
-        strategies = [
-            {'sep': None, 'engine': 'python'},  
-            {'sep': ',', 'engine': 'c'},        
-            {'sep': ';', 'engine': 'c'}         
-        ]
-        
-        for file in csv_files:
-            df = pd.DataFrame()
-            
-            # Tenta ler o arquivo com as 3 estratégias
-            for strat in strategies:
-                try:
-                    temp_df = pd.read_csv(file, encoding='latin1', dtype=str, **strat)
-                    # Se leu colunas, sucesso!
-                    if not temp_df.empty and len(temp_df.columns) > 1:
-                        df = temp_df
-                        break
-                except Exception:
-                    continue # Tenta a próxima estratégia silenciosamente
-
-            if df.empty:
-                
-                continue
-
+            filename = path.basename(file)
+            prefix = filename[0:2]
+    
+            cnes = ProjParams.get_cnes()
+    
             try:
-                # Padroniza colunas (Remove espaços e põe maiúsculo)
-                df.columns = [c.strip().upper() for c in df.columns]
-                
-                data_frames.append(df)
-                found_filled_data_frame = True
-            except Exception as e:
-                print(f"Erro ao processar colunas de {file}: {e}")
+                if Date.from_sus_file_name(filename).year < 2008:
+                    cnes = "TODOS"
+            except:
+                pass
+    
+            dbf_file_name = filename.lower().replace(".dbc", ".dbf")
+            csv_file_name = filename.lower().replace(".dbc", ".csv")
+    
+            csv_dir = PREFIX_CSV_DIR[prefix]
+            dbf_dir = PREFIX_DBF_DIR[prefix]
+            sistema = PREFIX_SYSTEM[prefix]
+    
+            os.makedirs(csv_dir, exist_ok=True)
+            os.makedirs(dbf_dir, exist_ok=True)
+    
+            dbf_file_path = path.join(dbf_dir, dbf_file_name)
+            csv_file_path = path.join(csv_dir, csv_file_name)
+    
+            # 1️⃣ Convert DBC → DBF
+            result1 = subprocess.run(
+                [ProjPaths.BLAST_DBF_PATH, file, dbf_file_path],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+    
+            if result1.returncode != 0:
+                print(f"Erro convertendo DBC para DBF: {file}")
+                return
+    
+            # 2️⃣ Convert DBF → CSV
+            result2 = subprocess.run(
+                [ProjPaths.DBF2CSV_PATH, dbf_file_path, csv_file_path, cnes, sistema],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+    
+            if result2.returncode != 0:
+                print(f"Erro convertendo DBF para CSV: {dbf_file_path}")
+                return
+    
+            # 3️⃣ DELETE DBF immediately (saves GBs)
+            if path.exists(dbf_file_path):
+                os.remove(dbf_file_path)
+    
+            # 4️⃣ DELETE original DBC immediately (VERY IMPORTANT)
+            if path.exists(file):
+                os.remove(file)
+    
+        except Exception as e:
+            print(f"Erro processando {file}: {e}")
+
+   @staticmethod
+def unite_files(system: str):
+    PREFIX_CSV_DIR = {
+        'SIA': ProjPaths.SIA_CSVS_DIR,
+        'SIH': ProjPaths.SIH_CSVS_DIR
+    }
+
+    csv_dir = PREFIX_CSV_DIR[system]
+    output_path = path.join(ProjPaths.UNITED_CSV_DIR, f'{system}.csv')
+
+    os.makedirs(ProjPaths.UNITED_CSV_DIR, exist_ok=True)
+
+    csv_files = [
+        path.join(csv_dir, f)
+        for f in os.listdir(csv_dir)
+        if f.endswith('.csv')
+    ]
+
+    if not csv_files:
+        print(f"No CSV files found for {system}.")
+        return
+
+    strategies = [
+        {'sep': None, 'engine': 'python'},
+        {'sep': ',', 'engine': 'c'},
+        {'sep': ';', 'engine': 'c'}
+    ]
+
+    first_write = True
+    found_valid_data = False
+
+    for file in csv_files:
+        df = pd.DataFrame()
+
+        # Try reading with different strategies
+        for strat in strategies:
+            try:
+                temp_df = pd.read_csv(
+                    file,
+                    encoding='latin1',
+                    dtype=str,
+                    **strat
+                )
+                if not temp_df.empty and len(temp_df.columns) > 1:
+                    df = temp_df
+                    break
+            except Exception:
                 continue
 
-        if not found_filled_data_frame:
-            print(f"No valid entries found for {system}.")
-            return
+        if df.empty:
+            continue
 
-        # Junta tudo
-        union = pd.concat(data_frames, ignore_index=True)
-        union.to_csv(path.join(ProjPaths.UNITED_CSV_DIR, f'{system}.csv'), index=False)
+        try:
+            df.columns = [c.strip().upper() for c in df.columns]
 
-        print(f"{system} files united")
+            df.to_csv(
+                output_path,
+                mode='w' if first_write else 'a',
+                header=first_write,
+                index=False
+            )
+
+            first_write = False
+            found_valid_data = True
+
+            del df  # free memory aggressively
+
+        except Exception as e:
+            print(f"Erro ao processar {file}: {e}")
+
+    if not found_valid_data:
+        print(f"No valid entries found for {system}.")
+        return
+
+    print(f"{system} files united (streaming mode)")
 
 class Tunep:
     TABELA_DE_CONVERSAO_SIA: pd.DataFrame
