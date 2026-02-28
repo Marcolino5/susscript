@@ -695,21 +695,8 @@ class Conversions:
         csv_file_path = path.join(csv_dir, csv_file_name)
         sistema = PREFIX_SYSTEM[filename[0:2]]
 
-
-        #DEBUG DE CONVERSÃO
-        print(f"\n--- DEBUG CONVERSÃO para: {filename} ---")
-        print(f"Origem .DBC: {file}")
-        print(f"Destino .dbf: {dbf_file_path}")
-        print(f"Destino .csv: {csv_file_path}")
-
-        print("Rodando BLAST_DBF...")
         subprocess.run([ProjPaths.BLAST_DBF_PATH, file, dbf_file_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        print("BLAST_DBF finalizado.")
-
-        print("Rodando DBF2CSV...")
         subprocess.run([ProjPaths.DBF2CSV_PATH, dbf_file_path, csv_file_path, cnes, sistema], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        print("DBF2CSV finalizado.")
-        print("------------------------------------------\n")
 
     @staticmethod
     def unite_files(system: str):
@@ -1530,10 +1517,8 @@ def get_files(system: str):
         ProjParams.get_start_date(),
         ProjParams.get_end_date())
 
-    print("\nwill download the follwing files:")
-    for file in files:
-        print(file)
-
+    print(f"\nWill download {len(files)} files.")
+    
     Downloads.download(files)
     print("downloads finished")
 
@@ -1609,11 +1594,11 @@ def main():
     ProjPaths.init()
     ProjPaths.test()
     ProjParams.init()
-
+    ProjParams.test()
+    
     for period in periods:
         ProjParams.set_start_date(period[0])
         ProjParams.set_end_date(period[1])
-        ProjParams.test()
         InterestRate.load_selic()
         InterestRate.show_selic()
         Tunep.load_tunep()
