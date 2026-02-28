@@ -747,79 +747,79 @@ class Conversions:
 
     @staticmethod
     def unite_files(system: str):
-    PREFIX_CSV_DIR = {
-        'SIA': ProjPaths.SIA_CSVS_DIR,
-        'SIH': ProjPaths.SIH_CSVS_DIR
-    }
-
-    csv_dir = PREFIX_CSV_DIR[system]
-    output_path = path.join(ProjPaths.UNITED_CSV_DIR, f'{system}.csv')
-
-    os.makedirs(ProjPaths.UNITED_CSV_DIR, exist_ok=True)
-
-    csv_files = [
-        path.join(csv_dir, f)
-        for f in os.listdir(csv_dir)
-        if f.endswith('.csv')
-    ]
-
-    if not csv_files:
-        print(f"No CSV files found for {system}.")
-        return
-
-    strategies = [
-        {'sep': None, 'engine': 'python'},
-        {'sep': ',', 'engine': 'c'},
-        {'sep': ';', 'engine': 'c'}
-    ]
-
-    first_write = True
-    found_valid_data = False
-
-    for file in csv_files:
-        df = pd.DataFrame()
-
-        # Try reading with different strategies
-        for strat in strategies:
-            try:
-                temp_df = pd.read_csv(
-                    file,
-                    encoding='latin1',
-                    dtype=str,
-                    **strat
-                )
-                if not temp_df.empty and len(temp_df.columns) > 1:
-                    df = temp_df
-                    break
-            except Exception:
+        PREFIX_CSV_DIR = {
+            'SIA': ProjPaths.SIA_CSVS_DIR,
+            'SIH': ProjPaths.SIH_CSVS_DIR
+        }
+    
+        csv_dir = PREFIX_CSV_DIR[system]
+        output_path = path.join(ProjPaths.UNITED_CSV_DIR, f'{system}.csv')
+    
+        os.makedirs(ProjPaths.UNITED_CSV_DIR, exist_ok=True)
+    
+        csv_files = [
+            path.join(csv_dir, f)
+            for f in os.listdir(csv_dir)
+            if f.endswith('.csv')
+        ]
+    
+        if not csv_files:
+            print(f"No CSV files found for {system}.")
+            return
+    
+        strategies = [
+            {'sep': None, 'engine': 'python'},
+            {'sep': ',', 'engine': 'c'},
+            {'sep': ';', 'engine': 'c'}
+        ]
+    
+        first_write = True
+        found_valid_data = False
+    
+        for file in csv_files:
+            df = pd.DataFrame()
+    
+            # Try reading with different strategies
+            for strat in strategies:
+                try:
+                    temp_df = pd.read_csv(
+                        file,
+                        encoding='latin1',
+                        dtype=str,
+                        **strat
+                    )
+                    if not temp_df.empty and len(temp_df.columns) > 1:
+                        df = temp_df
+                        break
+                except Exception:
+                    continue
+    
+            if df.empty:
                 continue
-
-        if df.empty:
-            continue
-
-        try:
-            df.columns = [c.strip().upper() for c in df.columns]
-
-            df.to_csv(
-                output_path,
-                mode='w' if first_write else 'a',
-                header=first_write,
-                index=False
-            )
-
-            first_write = False
-            found_valid_data = True
-
-            del df  # free memory aggressively
-
-        except Exception as e:
-            print(f"Erro ao processar {file}: {e}")
-
-    if not found_valid_data:
-        print(f"No valid entries found for {system}.")
-        return
-
-    print(f"{system} files united (streaming mode)")
+    
+            try:
+                df.columns = [c.strip().upper() for c in df.columns]
+    
+                df.to_csv(
+                    output_path,
+                    mode='w' if first_write else 'a',
+                    header=first_write,
+                    index=False
+                )
+    
+                first_write = False
+                found_valid_data = True
+    
+                del df  # free memory aggressively
+    
+            except Exception as e:
+                print(f"Erro ao processar {file}: {e}")
+    
+        if not found_valid_data:
+            print(f"No valid entries found for {system}.")
+            return
+    
+        print(f"{system} files united (streaming mode)")
 
 class Tunep:
     TABELA_DE_CONVERSAO_SIA: pd.DataFrame
