@@ -1549,6 +1549,40 @@ def test_mode():
     LatexBuilder.build_latex_file(months, years, total, ProjParams.METHOD)    
     PdfBuilder.write_pdf(path.join(ProjPaths.RESULTS_DIR, 'laudo.pdf'))
 
+def debug_disk(stage: str):
+    total, used, free = shutil.disk_usage("/")
+
+    print(f"\n===== DISK DEBUG: {stage} =====")
+    print("Total:", total // (1024**3), "GB")
+    print("Used :", used // (1024**3), "GB")
+    print("Free :", free // (1024**3), "GB")
+
+    def folder_size(path):
+        if not os.path.exists(path):
+            return 0
+        total_size = 0
+        for dirpath, dirnames, filenames in os.walk(path):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                total_size += os.path.getsize(fp)
+        return round(total_size / (1024**2), 2)  # MB
+
+    paths = [
+        ProjPaths.SIA_DOWNLOAD_DIR,
+        ProjPaths.SIH_DOWNLOAD_DIR,
+        ProjPaths.SIA_DBFS_DIR,
+        ProjPaths.SIH_DBFS_DIR,
+        ProjPaths.SIA_CSVS_DIR,
+        ProjPaths.SIH_CSVS_DIR,
+        ProjPaths.UNITED_CSV_DIR,
+        ProjPaths.RESULTS_DIR
+    ]
+
+    for p in paths:
+        print(f"{p}: {folder_size(p)} MB")
+
+    print("====================================\n")
+
 def split_into_bimesters(start_str, end_str):
     """
     Splits a period into 2-month chunks.
@@ -1620,10 +1654,12 @@ def main():
 
         Conversions.convert_files()
 
+        debug_disk("BEFORE UNITING/AFTER CONVERSION")
         if (ProjParams.SYSTEM == 'SIA' or ProjParams.SYSTEM == 'BOTH'):
             Conversions.unite_files('SIA')
         if (ProjParams.SYSTEM == 'SIH' or ProjParams.SYSTEM == 'BOTH'):
             Conversions.unite_files('SIH')
+        debug_disk("AFTER UNITING")
 
         sih_files = [path.join(ProjPaths.SIH_CSVS_DIR, file) for file in os.listdir(ProjPaths.SIH_CSVS_DIR)]
         sia_files = [path.join(ProjPaths.SIA_CSVS_DIR, file) for file in os.listdir(ProjPaths.SIA_CSVS_DIR)]
