@@ -666,7 +666,7 @@ class Conversions:
         with Pool(processes=ProjConfigs.N_OF_THREADS) as p:
             p.map(Conversions.convert_file_to_csv, path_to_files)
 
-   @staticmethod
+    @staticmethod
     def convert_file_to_csv(file: str):
     
         PREFIX_SYSTEM = {
