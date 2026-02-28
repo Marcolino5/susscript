@@ -1225,7 +1225,10 @@ class Processing:
     @staticmethod
     def month_SIH_IVR(file_path: str) -> MonthInfo:
         expected = set(SIH_RELEVANT_FIELDS)
-        df = pd.read_csv(file_path, encoding="latin1", sep=',')
+        try:
+            df = pd.read_csv(file_path, encoding="latin1", sep=None, engine="python")
+        except Exception:
+             df = pd.read_csv(file_path, encoding="latin1", sep=';', engine="python")
         df.columns = df.columns.str.strip()
         if not expected.issubset(set(df.columns)):
             print("File does not match SIH schema:", file_path)
@@ -1238,7 +1241,10 @@ class Processing:
     
     @staticmethod
     def month_SIH_TUNEP(file_path: str) -> MonthInfo:
-        df = pd.read_csv(file_path, usecols=SIH_RELEVANT_FIELDS, dtype={'SP_ATOPROF': 'str', 'SP_QTD_ATO': 'int'}, encoding="latin1", sep=',')
+        try:
+            df = pd.read_csv(file_path, usecols=SIH_RELEVANT_FIELDS, dtype={'SP_ATOPROF': 'str', 'SP_QTD_ATO': 'int'}, encoding="latin1", sep=None, engine="python")
+        except Exception:
+            df = pd.read_csv(file_path, usecols=SIH_RELEVANT_FIELDS, dtype={'SP_ATOPROF': 'str', 'SP_QTD_ATO': 'int'}, encoding="latin1", sep=";", engine="python")
         when = Date.from_sus_file_name(file_path)
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
         res = df.apply(Processing.row_SIH_TUNEP, axis=1).sum()
@@ -1248,7 +1254,10 @@ class Processing:
 
     @staticmethod
     def month_SIH_IVR_TUNEP(file_path: str) -> MonthInfo:
-        df = pd.read_csv(file_path, usecols=SIH_RELEVANT_FIELDS, dtype={'SP_ATOPROF': 'str', 'SP_QTD_ATO': 'int'}, encoding="latin1", sep=',')
+        try:
+            df = pd.read_csv(file_path, usecols=SIH_RELEVANT_FIELDS, dtype={'SP_ATOPROF': 'str', 'SP_QTD_ATO': 'int'}, encoding="latin1", sep=None, engine="python")
+        except Exception:
+             df = pd.read_csv(file_path, usecols=SIH_RELEVANT_FIELDS, dtype={'SP_ATOPROF': 'str', 'SP_QTD_ATO': 'int'}, encoding="latin1", sep=";", engine="python")
         when = Date.from_sus_file_name(file_path)
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
         res = df.apply(Processing.row_SIH_IVR_TUNEP, axis=1, result_type='reduce').sum()
