@@ -1527,42 +1527,59 @@ class LatexBuilder:
         """
         
         total_linhas_processadas = 0
+
+        # 🔹 First pass: aggregate procedures
+        aggregated = {}  # (month, code) -> accumulator dict
         
         for m in months:
             if not hasattr(m, 'procedimentos') or not m.procedimentos:
                 continue
-            
-            print(f"DEBUG LATEX: Adicionando {len(m.procedimentos)} linhas para o mês {m.when}...")
-
+        
             for p in m.procedimentos:
                 code = p.get('PA_PROC_ID', p.get('SP_ATOPROF', '?'))
                 tipo_display = p.get('TIPO_SISTEMA', '-')
-                
-                # Busca a descrição com o novo método mais seguro
-                descricao = Tunep.get_description(code, tipo_display)
-                descricao = descricao.replace('&', '\\&').replace('%', '\\%').replace('_', '\\_')
-                
+        
                 try:
                     qtd = int(p.get('PA_QTDAPR', p.get('SP_QTD_ATO', 0)))
                     paid = float(p.get('PA_VALAPR', p.get('SP_VALATO', 0.0)))
                     due = float(p.get('VALOR_DEVIDO_IVR', 0.0))
                 except:
                     continue
+        
+                key = (m.when, code)
+        
+                if key not in aggregated:
+                    aggregated[key] = {
+                        "month": m.when,
+                        "code": code,
+                        "tipo": tipo_display,
+                        "qtd": 0,
+                        "paid": 0.0,
+                        "due": 0.0,
+                    }
+        
+                aggregated[key]["qtd"] += qtd
+                aggregated[key]["paid"] += paid
+                aggregated[key]["due"] += due
 
-                # Removemos a coluna do meio (Tipo)
-                latex += (
-                    f"{{\\centering {m.when}}} & "
-                    f"{{\\centering {code}}} & "
-                    f"{{\\raggedright \\scriptsize {descricao}}} & "
-                    f"{{\\centering {qtd}}} & "
-                    f"{{\\raggedleft {paid:.2f}}} & "
-                    f"{{\\raggedleft {due:.2f}}} \\\\ \\hline \n"
-                )
-                
-                total_linhas_processadas += 1
-                # Mudar quando estiver consertado
-                if total_linhas_processadas >= 1500:
-                    break
+
+        # 🔹 Second pass: generate LaTeX from grouped data
+        for data in aggregated.values():
+        
+            descricao = Tunep.get_description(data["code"], data["tipo"])
+            descricao = descricao.replace('&', '\\&').replace('%', '\\%').replace('_', '\\_')
+        
+            latex += (
+                f"{{\\centering {data['month']}}} & "
+                f"{{\\centering {data['code']}}} & "
+                f"{{\\raggedright \\scriptsize {descricao}}} & "
+                f"{{\\centering {data['qtd']}}} & "
+                f"{{\\raggedleft {data['paid']:.2f}}} & "
+                f"{{\\raggedleft {data['due']:.2f}}} \\\\ \\hline \n"
+            )
+        
+            total_linhas_processadas += 1
+
 
         latex += r"""
         \end{longtable}
