@@ -1546,7 +1546,8 @@ class LatexBuilder:
                 except:
                     continue
         
-                key = (m.when, code)
+                month_str = str(m.when)
+                key = (month_str, code)
         
                 if key not in aggregated:
                     aggregated[key] = {
