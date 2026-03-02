@@ -1158,9 +1158,8 @@ class Processing:
         #df = pd.read_csv(file_path, usecols=SIA_RELEVANT_FIELDS)
         when = Date.from_sus_file_name(file_path)
         print(f"Processando mês: {when}")
-
+        
         #PROCESSAMENTO DE ARQUIVOS ANTIGOS
-
         if when.year < 2008:
             colunas_antigas = ['PA_DATREF', 'PA_CODPRO', 'PA_QTDAPR', 'PA_VALAPR', 'PA_CODUNI']
             try:
@@ -1223,6 +1222,12 @@ class Processing:
         df['TIPO_SISTEMA'] = 'SIA'
         
         procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
+
+        raise Exception(f"""
+                        DEBUG HOSPITAL PROBLEM
+                        {when.year}
+                        Procedimentos: {procedimentos_lista}
+                        """)
 
         #VERIFICA SE PEGOU ALGUMA COISA
         print(f"DEBUG PYTHON: Encontrei {len(procedimentos_lista)} procedimentos para o mês {when}")
@@ -1533,11 +1538,6 @@ class LatexBuilder:
         
         for m in months:
             if not hasattr(m, 'procedimentos') or not m.procedimentos:
-                raise Exception(f"""
-                        DEBUG HOSPITAL PROBLEM
-                        Month: {m}
-                        NO ATTRIBUTE PROCEDIMENTOS FOUND IN MONTH
-                        """)
                 continue
         
             for p in m.procedimentos:
