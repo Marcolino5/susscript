@@ -1161,11 +1161,6 @@ class Processing:
         
         #PROCESSAMENTO DE ARQUIVOS ANTIGOS
         if when.year < 2008:
-            raise Exception(f"""
-                        DEBUG HOSPITAL PROBLEM
-                        TESTE: {when.year}
-                        Procedimentos: {procedimentos_lista}
-                        """)
             colunas_antigas = ['PA_DATREF', 'PA_CODPRO', 'PA_QTDAPR', 'PA_VALAPR', 'PA_CODUNI']
             try:
                 #Lê o arquivo CSV completo (gerado com filtro "TODOS")
@@ -1335,6 +1330,10 @@ class Processing:
     @staticmethod
     def months(sia_files: list[str], sih_files: list[str], method: str) -> list[MonthInfo]:
 
+        raise Exception(f"""
+                        DEBUG HOSPITAL PROBLEM
+                        TESTE: {method}
+                        """)
         if (method == 'TUNEP' or method == 'BOTH'):
             print(f'method {method} not implemented yet')
             exit(1)
