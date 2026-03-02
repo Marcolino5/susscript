@@ -1537,9 +1537,6 @@ class LatexBuilder:
             for p in m.procedimentos:
                 code = p.get('PA_PROC_ID', p.get('SP_ATOPROF', '?'))
                 tipo_display = p.get('TIPO_SISTEMA', '-')
-
-                if code == "0202030679":  # exemplo
-                    raise Exception (f"DEBUG RAW: {p}")
                 
                 try:
                     qtd = int(p.get('PA_QTDAPR', p.get('SP_QTD_ATO', 0)))
@@ -1547,7 +1544,10 @@ class LatexBuilder:
                     due = float(p.get('VALOR_DEVIDO_IVR', 0.0))
                 except:
                     continue
-        
+                    
+                if qtd == 0:
+                    continue
+                    
                 month_str = str(m.when)
                 key = (month_str, code)
         
