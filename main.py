@@ -1533,6 +1533,11 @@ class LatexBuilder:
         
         for m in months:
             if not hasattr(m, 'procedimentos') or not m.procedimentos:
+                raise Exception(f"""
+                        DEBUG HOSPITAL PROBLEM
+                        Month: {m}
+                        NO ATTRIBUTE PROCEDIMENTOS FOUND IN MONTH
+                        """)
                 continue
         
             for p in m.procedimentos:
