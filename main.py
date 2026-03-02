@@ -1161,6 +1161,11 @@ class Processing:
         
         #PROCESSAMENTO DE ARQUIVOS ANTIGOS
         if when.year < 2008:
+            raise Exception(f"""
+                        DEBUG HOSPITAL PROBLEM
+                        TESTE: {when.year}
+                        Procedimentos: {procedimentos_lista}
+                        """)
             colunas_antigas = ['PA_DATREF', 'PA_CODPRO', 'PA_QTDAPR', 'PA_VALAPR', 'PA_CODUNI']
             try:
                 #Lê o arquivo CSV completo (gerado com filtro "TODOS")
@@ -1222,12 +1227,6 @@ class Processing:
         df['TIPO_SISTEMA'] = 'SIA'
         
         procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
-
-        raise Exception(f"""
-                        DEBUG HOSPITAL PROBLEM
-                        {when.year}
-                        Procedimentos: {procedimentos_lista}
-                        """)
 
         #VERIFICA SE PEGOU ALGUMA COISA
         print(f"DEBUG PYTHON: Encontrei {len(procedimentos_lista)} procedimentos para o mês {when}")
