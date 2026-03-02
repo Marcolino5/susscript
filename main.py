@@ -1330,10 +1330,6 @@ class Processing:
     @staticmethod
     def months(sia_files: list[str], sih_files: list[str], method: str) -> list[MonthInfo]:
 
-        raise Exception(f"""
-                        DEBUG HOSPITAL PROBLEM
-                        TESTE: {method}
-                        """)
         if (method == 'TUNEP' or method == 'BOTH'):
             print(f'method {method} not implemented yet')
             exit(1)
@@ -1541,7 +1537,10 @@ class LatexBuilder:
             for p in m.procedimentos:
                 code = p.get('PA_PROC_ID', p.get('SP_ATOPROF', '?'))
                 tipo_display = p.get('TIPO_SISTEMA', '-')
-        
+
+                if code == "0202030679":  # exemplo
+                    raise Exception (f"DEBUG RAW: {p}")
+                
                 try:
                     qtd = int(p.get('PA_QTDAPR', p.get('SP_QTD_ATO', 0)))
                     paid = float(p.get('PA_VALAPR', p.get('SP_VALATO', 0.0)))
