@@ -977,8 +977,8 @@ class YearInfo:
 
     def add_month(self, m: MonthInfo):
         self.diff_then += m.debt_then()
-        self.diff_now += m.expected # total
-        self.val_correcao += m.got # got
+        self.diff_now += m.debt_now()
+        self.val_correcao += m.debt_now() - m.debt_then()
 
 
 class TotalInfo:
@@ -989,8 +989,8 @@ class TotalInfo:
 
     def add_month(self, m: MonthInfo):
         self.diff_then += m.debt_then()
-        self.diff_now += m.expected # total
-        self.val_correcao += m.got # got
+        self.diff_now += m.debt_now()
+        self.val_correcao += m.debt_now() - m.debt_then()
 
 
 class LegacyMatcher:
@@ -1477,7 +1477,7 @@ class LatexBuilder:
     def build_month_latex_table(months: list[MonthInfo], template: ModuleType) -> str:
         table_body = template.MONTH_HEADER
         for m in months:
-            table_body += f"{m.when} & {m.debt_then():.2f} & {m.got:.2f} & {m.expected:.2f}"
+            table_body += f"{m.when} & {m.got:.2f} & {m.debt_then():.2f} & {(m.rates[0]*100)-100:.4f}\\% & {(m.rates[1]*100)-100:.4f}\\% & {m.debt_now():.2f}"
             table_body += '\\\\ \\hline'
         return table_body + template.MONTH_FOOTER
 
