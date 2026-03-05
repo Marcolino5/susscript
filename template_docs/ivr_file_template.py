@@ -2,6 +2,14 @@ FILE_HEADER = '''
 \\documentclass{report}
 \\usepackage{longtable}
 \\usepackage[margin=1.0cm]{geometry}
+\\usepackage[utf8]{inputenc}
+\\usepackage{siunitx}
+
+\sisetup{
+    output-decimal-marker = {,},
+    group-separator = {.},
+    group-digits = integer
+}
 
 \\title{Laudo Quantitativo}
 \\author{}
@@ -53,9 +61,9 @@ TOTAL_HEADER = '''
 \\section{Resumo Total}
 \\begin{longtable}[c]{|p{1.7cm}|p{2.6cm}|p{2.6cm}|p{2.3cm}|}
 	\\caption{Resumo total} \\\\ \\hline
-	\\textbf{Diferença devida e não paga} &
-	\\textbf{Atualização} &
-	\\textbf{Valor total devido}
+	\\textbf{Diferença devida e não paga (R\$)} &
+	\\textbf{Atualização (R\$)} &
+	\\textbf{Valor total devido (R\$)}
 	\\endhead \\hline
 '''
 
@@ -68,9 +76,9 @@ YEAR_HEADER = '''
 \\begin{longtable}[c]{|p{1.7cm}|p{2.6cm}|p{2.6cm}|p{2.3cm}|}
 	\\caption{Resumo ano a ano} \\\\ \\hline
 	\\textbf{Ano} &
-	\\textbf{Diferença devida e não paga} &
-	\\textbf{Atualização} &
-	\\textbf{Valor total devido}
+	\\textbf{Diferença devida e não paga (R\$)} &
+	\\textbf{Atualização (R\$)} &
+	\\textbf{Valor total devido (R\$)}
 	\\endhead \\hline
 '''
 
@@ -83,11 +91,11 @@ MONTH_HEADER = '''
 \\begin{longtable}[c]{|p{1.7cm}|p{2.6cm}|p{2.6cm}|p{2.3cm}|p{2.3cm}|p{2.3cm}|c|}
 	\\caption{Resumo mês a mês} \\\\ \\hline
 	\\textbf{Mês do Crédito} &
-	\\textbf{Valor original pago pelo SUS} &
-	\\textbf{Diferença devida e não paga} &
+	\\textbf{Valor original pago pelo SUS (R\$)} &
+	\\textbf{Diferença devida e não paga (R\$)} &
 	\\textbf{Atualização antes de 01/2022} &
 	\\textbf{Selic a partir de 01/2022} &
-	\\textbf{Valor total devido}
+	\\textbf{Valor total devido (R\$)}
 	\\endhead \\hline
 '''
 
