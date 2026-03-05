@@ -2,14 +2,6 @@ FILE_HEADER = '''
 \\documentclass{report}
 \\usepackage{longtable}
 \\usepackage[margin=1.0cm]{geometry}
-\\usepackage[utf8]{inputenc}
-\\usepackage{siunitx}
-
-\sisetup{
-    output-decimal-marker = {,},
-    group-separator = {.},
-    group-digits = integer
-}
 
 \\title{Laudo Quantitativo}
 \\author{}
