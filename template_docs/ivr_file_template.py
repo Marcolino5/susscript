@@ -2,9 +2,6 @@ FILE_HEADER = '''
 \\documentclass{report}
 \\usepackage{longtable}
 \\usepackage[margin=1.0cm]{geometry}
-\\usepackage{siunitx}
-
-\\sisetup{locale = DE}
 
 \\title{Laudo Quantitativo}
 \\author{}
