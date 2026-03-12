@@ -1480,7 +1480,7 @@ class LatexBuilder:
     def build_month_latex_table(months: list[MonthInfo], template: ModuleType) -> str:
         table_body = template.MONTH_HEADER
         for m in months:
-            table_body += f"{m.when} & {m.got:.2f} & {m.debt_then():.2f} & {(m.rates[0]*100)-100:.4f}\\% & {(m.rates[1]*100)-100:.4f}\\% & {m.debt_now():.2f}"
+            table_body += f"{m.when} & {br_money(m.got)} & {br_money(m.debt_then())} & {(m.rates[0]*100)-100:.4f}\\% & {(m.rates[1]*100)-100:.4f}\\% & {br_money(m.debt_now())}"
             table_body += '\\\\ \\hline'
         return table_body + template.MONTH_FOOTER
 
@@ -1489,7 +1489,7 @@ class LatexBuilder:
     def build_year_latex_table(years: list[YearInfo], template: ModuleType) -> str:
         table_body = template.YEAR_HEADER
         for y in years:
-            table_body += f"{y.when} & {y.diff_then:.2f} & {y.val_correcao:.2f} & {y.diff_now:.2f}"
+            table_body += f"{y.when} & {br_money(y.diff_then)} & {br_money(y.val_correcao)} & {br_money(y.diff_now)}"
             table_body += '\\\\ \\hline'
         return table_body + template.YEAR_FOOTER
 
@@ -1497,7 +1497,7 @@ class LatexBuilder:
     @staticmethod
     def build_total_latex_table(report: TotalInfo, template: ModuleType) -> str:
         table_body = template.TOTAL_HEADER
-        table_body += f"{report.diff_then:.2f} & {report.val_correcao:.2f} & {report.diff_now:.2f}"
+        table_body += f"{br_money(report.diff_then)} & {br_money(report.val_correcao)} & {br_money(report.diff_now)}"
         table_body += '\\\\ \\hline'
         return table_body + template.TOTAL_FOOTER
     
