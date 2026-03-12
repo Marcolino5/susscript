@@ -15,6 +15,9 @@ import os
 SIA_RELEVANT_FIELDS = np.array(['PA_CMP', 'PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR'])
 SIH_RELEVANT_FIELDS = np.array(['SP_AA', 'SP_MM','SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO'])
 
+def br_money(value: float) -> str:
+    return f"{value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
 # Class responsible for defining, sharing and creating the directories used in the program
 class ProjPaths:
     
@@ -1577,8 +1580,8 @@ class LatexBuilder:
                 f"{{\\centering {data['code']}}} & "
                 f"{{\\raggedright \\scriptsize {descricao}}} & "
                 f"{{\\centering {data['qtd']}}} & "
-                f"{{\\raggedleft {data['paid']:.2f}}} & "
-                f"{{\\raggedleft {data['due']:.2f}}} \\\\ \\hline \n"
+                f"{{\\raggedleft {br_money(data['paid'])}}} & "
+                f"{{\\raggedleft {br_money(data['due'])}}} \\\\ \\hline \n"
             )
         
             total_linhas_processadas += 1
