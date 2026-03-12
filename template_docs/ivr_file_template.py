@@ -4,11 +4,7 @@ FILE_HEADER = '''
 \\usepackage[margin=1.0cm]{geometry}
 \\usepackage{siunitx}
 
-\\sisetup{
-  output-decimal-marker = {,},
-  group-separator = {.},
-  group-minimum-digits = 4
-}
+\\sisetup{locale = DE}
 
 \\title{Laudo Quantitativo}
 \\author{}
