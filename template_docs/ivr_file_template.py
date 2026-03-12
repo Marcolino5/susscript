@@ -51,7 +51,7 @@ Com base nas informações extraídas do DATASUS de procedimentos hospitalares e
 
 TOTAL_HEADER = '''
 \\section{Resumo Total}
-\\begin{longtable}[c]{|p{1.7cm}|p{2.6cm}|p{2.6cm}|p{2.3cm}|}
+\\begin{longtable}[c]{|p{2.6cm}|p{2.6cm}|p{2.6cm}|p{2.3cm}|}
 	\\caption{Resumo total} \\\\ \\hline
 	\\textbf{Diferença devida e não paga (R\$)} &
 	\\textbf{Atualização (R\$)} &
