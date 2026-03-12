@@ -1456,10 +1456,7 @@ class LatexBuilder:
         
         result += template.METODOLOGIA
 
-        result += template.CONCLUSAO.format(valor_total=str(report.diff_now))
-
-        
-        result += template.CONCLUSAO.format(valor_total=str(report.diff_now))
+        result += template.CONCLUSAO.format(valor_total=br_money(report.diff_now))
 
         result += LatexBuilder.build_total_latex_table(report, template)
 
