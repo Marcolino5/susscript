@@ -1541,7 +1541,7 @@ class LatexBuilder:
                 try:
                     qtd = int(p.get('PA_QTDAPR', p.get('SP_QTD_ATO', 0)))
                     paid = float(p.get('PA_VALAPR', p.get('SP_VALATO', 0.0)))
-                    due = float(p.get('VALOR_DEVIDO_IVR', 0.0))
+                    due = float(p.get('VALOR_DEVIDO_IVR', 0.0)) - paid
                 except:
                     continue
                     
