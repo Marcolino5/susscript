@@ -2,6 +2,7 @@ FILE_HEADER = '''
 \\documentclass{report}
 \\usepackage{longtable}
 \\usepackage[margin=1.0cm]{geometry}
+\\usepackage{siunitx}
 
 \\title{Laudo Quantitativo}
 \\author{}
