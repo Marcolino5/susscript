@@ -979,6 +979,7 @@ class YearInfo:
 
 
     def add_month(self, m: MonthInfo):
+        print(f"Diff now: {m.debt_now}")
         self.diff_then += m.debt_then()
         self.diff_now += m.debt_now()
         self.val_correcao += m.debt_now() - m.debt_then()
@@ -1456,6 +1457,9 @@ class LatexBuilder:
         
         result += template.METODOLOGIA
 
+        if (report.diff_now == 0):
+            raise Exception("Nothing to pay")
+        
         result += template.CONCLUSAO.format(valor_total=br_money(report.diff_now))
 
         result += LatexBuilder.build_total_latex_table(report, template)
