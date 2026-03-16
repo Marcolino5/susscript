@@ -1291,6 +1291,10 @@ class Processing:
     @staticmethod
     def month_SIH_IVR(file_path: str) -> MonthInfo:
         expected = set(SIH_RELEVANT_FIELDS)
+
+        if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
+            return None
+        
         try:
             df = pd.read_csv(file_path, encoding="latin1", sep=None, engine="python")
         except Exception:
@@ -1350,7 +1354,11 @@ class Processing:
 
         for f_sia in sia_files:
             m = sia_func(f_sia)
-            if not str(m.when) in months_info:
+
+            if not m:
+                continue
+            
+            if str(m.when) not in months_info:
                 rate = InterestRate.complete_rate_split(m.when, ProjParams.END_INTEREST)
                 months_info[str(m.when)] = MonthInfo.empty(m.when, method, rate)
             months_info[str(m.when)].add_got_exp('SIA', m.got, m.expected, m.procedimentos)
