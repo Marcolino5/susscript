@@ -1768,6 +1768,5 @@ def main():
 
     LatexBuilder.build_latex_file(months, years, total, ProjParams.METHOD)    
     PdfBuilder.write_pdf(path.join(ProjPaths.RESULTS_DIR, 'laudo.pdf'))
-    raise Exception("Testing")
 
 main()
