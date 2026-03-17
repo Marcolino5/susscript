@@ -1763,11 +1763,11 @@ def main():
         ProjPaths.empty_dirs()
         ProjPaths.create_paths()
     print(f"Months: {months}")
-    raise Exception("Testing")
     years = Processing.year_results(months)
     total = Processing.total_result(months)
 
     LatexBuilder.build_latex_file(months, years, total, ProjParams.METHOD)    
     PdfBuilder.write_pdf(path.join(ProjPaths.RESULTS_DIR, 'laudo.pdf'))
+    raise Exception("Testing")
 
 main()
