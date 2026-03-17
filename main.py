@@ -1762,7 +1762,7 @@ def main():
         months += Processing.months(sia_files, sih_files, ProjParams.METHOD)
         ProjPaths.empty_dirs()
         ProjPaths.create_paths()
-    print(months)
+    print(f"Months: {months}")
     raise Exception("Testing")
     years = Processing.year_results(months)
     total = Processing.total_result(months)
