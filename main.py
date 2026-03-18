@@ -42,6 +42,7 @@ class ProjPaths:
     LATEX_FILE_PATH: str = ""
     SIA_TUNEP_TABLE_PATH: str = ""
     SIH_TUNEP_TABLE_PATH: str = ""
+    PROC_TABLE_PATH: str = ""
 
     @staticmethod
     def init():
@@ -84,6 +85,7 @@ class ProjPaths:
         ProjPaths.LATEX_FILE_PATH = path.join(ProjPaths.LATEX_DIR, "laudo.tex")
         ProjPaths.SIA_TUNEP_TABLE_PATH = path.join(ProjPaths.TABLES_DIR, "tabela_tunep_sia.csv")
         ProjPaths.SIH_TUNEP_TABLE_PATH = path.join(ProjPaths.TABLES_DIR, "tabela_tunep_sih.csv")
+        ProjPaths.PROC_TABLE_PATH = path.join(ProjPaths.TABLES_DIR, "desc_procedimento.csv")
 
 
     @staticmethod
@@ -848,9 +850,8 @@ class Tunep:
         Tunep.TABELA_DE_CONVERSAO_SIH = sih_df.set_index('CO_PROCEDIMENTO').copy()
 
         try:
-            caminho_geral = os.path.join('tables', 'desc_procedimento.csv')
             # Lê apenas código e nome da tabela nova
-            geral_df = pd.read_csv(caminho_geral, usecols=['CO_PROCEDIMENTO', 'NO_PROCEDIMENTO'], dtype=str)
+            geral_df = pd.read_csv(ProjPaths.PROC_TABLE_PATH, usecols=['CO_PROCEDIMENTO', 'NO_PROCEDIMENTO'], dtype=str)
             geral_df['CO_PROCEDIMENTO'] = geral_df['CO_PROCEDIMENTO'].str.strip().str.zfill(10)
             Tunep.TABELA_GERAL = geral_df.set_index('CO_PROCEDIMENTO').copy()
             print("Tabela geral de procedimentos carregada com sucesso.")
