@@ -857,6 +857,7 @@ class Tunep:
         except Exception as e:
             print(f"Aviso: Não foi possível carregar desc_procedimento.csv: {e}")
             Tunep.TABELA_GERAL = pd.DataFrame()
+            raise Exception(f"TESTE {e}")
 
 
     @staticmethod
