@@ -839,20 +839,20 @@ class Tunep:
 
         sia_df['CO_PROCEDIMENTO'] = sia_df['CO_PROCEDIMENTO'].str.strip().str.zfill(10)
         sia_df['ValorTUNEP'] = pd.to_numeric(sia_df['ValorTUNEP'], errors='coerce')
-        Tunep.TABELA_DE_CONVERSAO_SIA = sia_df.set_index('CO_PROCEDIMENTO')
+        Tunep.TABELA_DE_CONVERSAO_SIA = sia_df.set_index('CO_PROCEDIMENTO').copy()
 
         sih_df = pd.read_csv(ProjPaths.SIH_TUNEP_TABLE_PATH, decimal=',',  thousands='.', usecols=np.array(['CO_PROCEDIMENTO', 'ValorTUNEP', 'TP_PROCEDIMENTO', 'Descricao']), dtype={'CO_PROCEDIMENTO': str, 'Descricao': str})
 
         sih_df['CO_PROCEDIMENTO'] = sih_df['CO_PROCEDIMENTO'].str.strip().str.zfill(10)
         sih_df['ValorTUNEP'] = pd.to_numeric(sih_df['ValorTUNEP'], errors='coerce')
-        Tunep.TABELA_DE_CONVERSAO_SIH = sih_df.set_index('CO_PROCEDIMENTO')
+        Tunep.TABELA_DE_CONVERSAO_SIH = sih_df.set_index('CO_PROCEDIMENTO').copy()
 
         try:
             caminho_geral = os.path.join('tables', 'desc_procedimento.csv')
             # Lê apenas código e nome da tabela nova
             geral_df = pd.read_csv(caminho_geral, usecols=['CO_PROCEDIMENTO', 'NO_PROCEDIMENTO'], dtype=str)
             geral_df['CO_PROCEDIMENTO'] = geral_df['CO_PROCEDIMENTO'].str.strip().str.zfill(10)
-            Tunep.TABELA_GERAL = geral_df.set_index('CO_PROCEDIMENTO')
+            Tunep.TABELA_GERAL = geral_df.set_index('CO_PROCEDIMENTO').copy()
             print("Tabela geral de procedimentos carregada com sucesso.")
         except Exception as e:
             print(f"Aviso: Não foi possível carregar desc_procedimento.csv: {e}")
