@@ -848,9 +848,7 @@ class Tunep:
         Tunep.TABELA_DE_CONVERSAO_SIH = sih_df.set_index('CO_PROCEDIMENTO').copy()
 
         try:
-            BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-            caminho_geral = os.path.join(BASE_DIR, '..', 'tables', 'desc_procedimento.csv')
-
+            caminho_geral = os.path.join('tables', 'desc_procedimento.csv')
             # Lê apenas código e nome da tabela nova
             geral_df = pd.read_csv(caminho_geral, usecols=['CO_PROCEDIMENTO', 'NO_PROCEDIMENTO'], dtype=str)
             geral_df['CO_PROCEDIMENTO'] = geral_df['CO_PROCEDIMENTO'].str.strip().str.zfill(10)
@@ -859,7 +857,10 @@ class Tunep:
         except Exception as e:
             print(f"Aviso: Não foi possível carregar desc_procedimento.csv: {e}")
             Tunep.TABELA_GERAL = pd.DataFrame()
-            raise Exception(f"TESTE {e}")
+             if os.path.exists('tables'):
+                raise Exception("Conteúdo de 'tables':", os.listdir('tables'))
+            else:
+                raise Exception("'tables' não existe")
 
 
     @staticmethod
@@ -1769,7 +1770,10 @@ def main():
     years = Processing.year_results(months)
     total = Processing.total_result(months)
 
-    LatexBuilder.build_latex_file(months, years, total, ProjParams.METHOD)    
+    print("Before LaTeX Builder:", os.path.exists('tables/desc_procedimento.csv'))
+    LatexBuilder.build_latex_file(months, years, total, ProjParams.METHOD)
+    print("After LaTeX Builder:", os.path.exists('tables/desc_procedimento.csv'))
     PdfBuilder.write_pdf(path.join(ProjPaths.RESULTS_DIR, 'laudo.pdf'))
+    print("After PDF Builder:", os.path.exists('tables/desc_procedimento.csv'))
 
 main()
