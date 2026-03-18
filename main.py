@@ -1764,6 +1764,8 @@ def main():
         sih_files = [path.join(ProjPaths.SIH_CSVS_DIR, file) for file in os.listdir(ProjPaths.SIH_CSVS_DIR)]
         sia_files = [path.join(ProjPaths.SIA_CSVS_DIR, file) for file in os.listdir(ProjPaths.SIA_CSVS_DIR)]
 
+        print(f"sih_files: {sih_files}")
+        print(f"sia_files: {sia_files}")
         months += Processing.months(sia_files, sih_files, ProjParams.METHOD)
         print(f"Months right now: {months}")
         ProjPaths.empty_dirs()
