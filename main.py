@@ -848,7 +848,9 @@ class Tunep:
         Tunep.TABELA_DE_CONVERSAO_SIH = sih_df.set_index('CO_PROCEDIMENTO').copy()
 
         try:
-            caminho_geral = os.path.join('tables', 'desc_procedimento.csv')
+            BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+            caminho_geral = os.path.join(BASE_DIR, '..', 'tables', 'desc_procedimento.csv')
+
             # Lê apenas código e nome da tabela nova
             geral_df = pd.read_csv(caminho_geral, usecols=['CO_PROCEDIMENTO', 'NO_PROCEDIMENTO'], dtype=str)
             geral_df['CO_PROCEDIMENTO'] = geral_df['CO_PROCEDIMENTO'].str.strip().str.zfill(10)
