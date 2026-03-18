@@ -1765,16 +1765,14 @@ def main():
         sia_files = [path.join(ProjPaths.SIA_CSVS_DIR, file) for file in os.listdir(ProjPaths.SIA_CSVS_DIR)]
 
         months += Processing.months(sia_files, sih_files, ProjParams.METHOD)
+        print(f"Months right now: {months}")
         ProjPaths.empty_dirs()
         ProjPaths.create_paths()
-    print(f"Months: {months}")
+    print(f"Months after the loop: {months}")
     years = Processing.year_results(months)
     total = Processing.total_result(months)
 
-    print("Before LaTeX Builder:", os.path.exists('tables/desc_procedimento.csv'))
     LatexBuilder.build_latex_file(months, years, total, ProjParams.METHOD)
-    print("After LaTeX Builder:", os.path.exists('tables/desc_procedimento.csv'))
     PdfBuilder.write_pdf(path.join(ProjPaths.RESULTS_DIR, 'laudo.pdf'))
-    print("After PDF Builder:", os.path.exists('tables/desc_procedimento.csv'))
 
 main()
