@@ -860,7 +860,7 @@ class Tunep:
             if os.path.exists('tables'):
                 raise Exception("Conteúdo de 'tables':", os.listdir('tables'))
             else:
-                raise Exception("'tables' não existe")
+                raise Exception("'tables' não existe, CWD:", os.getcwd())
 
 
     @staticmethod
