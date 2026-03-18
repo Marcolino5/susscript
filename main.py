@@ -857,7 +857,7 @@ class Tunep:
         except Exception as e:
             print(f"Aviso: Não foi possível carregar desc_procedimento.csv: {e}")
             Tunep.TABELA_GERAL = pd.DataFrame()
-             if os.path.exists('tables'):
+            if os.path.exists('tables'):
                 raise Exception("Conteúdo de 'tables':", os.listdir('tables'))
             else:
                 raise Exception("'tables' não existe")
