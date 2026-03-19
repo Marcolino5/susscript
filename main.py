@@ -695,7 +695,9 @@ class Conversions:
         try:
             filename = path.split(file)[-1]
             prefix = filename[0:2]
-    
+
+            print(f"filename: {filename}, file: {file}, prefix: {prefix}")
+            
             cnes = ProjParams.get_cnes()
     
             try:
@@ -719,9 +721,7 @@ class Conversions:
     
             # 1️⃣ Convert DBC → DBF
             result1 = subprocess.run(
-                [ProjPaths.BLAST_DBF_PATH, file, dbf_file_path],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
+                [ProjPaths.BLAST_DBF_PATH, file, dbf_file_path]
             )
     
             if result1.returncode != 0:
@@ -730,9 +730,7 @@ class Conversions:
     
             # 2️⃣ Convert DBF → CSV
             result2 = subprocess.run(
-                [ProjPaths.DBF2CSV_PATH, dbf_file_path, csv_file_path, cnes, sistema],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
+                [ProjPaths.DBF2CSV_PATH, dbf_file_path, csv_file_path, cnes, sistema]
             )
     
             if result2.returncode != 0:
