@@ -1239,16 +1239,22 @@ class Processing:
         #PROCESSAMENTO DE ARQUIVOS RECENTES (>= 2008)
         # Aqui o filtro por CNES já foi feito ou é padrão
         else:
-            df = pd.read_csv(file_path, usecols=SIA_RELEVANT_FIELDS, dtype=str)
-            
-            # Limpa as colunas numéricas
-            df['PA_VALAPR'] = pd.to_numeric(df['PA_VALAPR'].str.strip(), errors='coerce').fillna(0)
-            df['PA_QTDAPR'] = pd.to_numeric(df['PA_QTDAPR'].str.strip(), errors='coerce').fillna(0)
-
-
+            try:
+                df = pd.read_csv(file_path, usecols=SIA_RELEVANT_FIELDS, dtype=str)
+                
+                # Limpa as colunas numéricas
+                df['PA_VALAPR'] = pd.to_numeric(df['PA_VALAPR'].str.strip(), errors='coerce').fillna(0)
+                df['PA_QTDAPR'] = pd.to_numeric(df['PA_QTDAPR'].str.strip(), errors='coerce').fillna(0)
+            except pd.errors.EmptyDataError:
+                print(f"[SKIP] Pandas empty CSV: {file_path}")
+                return MonthInfo.empty(when, 'IVR', rate)
+            except Exception as e:
+                print(f"[ERROR] Failed reading {file_path}: {e}")
+                return MonthInfo.empty(when, 'IVR', rate)
         
         if df.empty:
             rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
+            print(f"[SKIP] DataFrame empty: {file_path}")
             return MonthInfo.empty(when, 'IVR', rate)
 
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
