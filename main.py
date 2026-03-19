@@ -673,7 +673,7 @@ class Conversions:
 
     @staticmethod
     def convert_file_to_csv(file: str):
-
+    
         PREFIX_SYSTEM = {
             'PA': 'SIA',
             'SP': 'SIH',
@@ -696,14 +696,8 @@ class Conversions:
             filename = path.basename(file)
             prefix = filename[0:2]
     
-            # Safety check for unknown prefixes
-            if prefix not in PREFIX_SYSTEM:
-                print(f"[SKIP] Unknown prefix: {filename}")
-                return
-    
             cnes = ProjParams.get_cnes()
     
-            # Old files logic
             try:
                 if Date.from_sus_file_name(filename).year < 2008:
                     cnes = "TODOS"
@@ -723,68 +717,38 @@ class Conversions:
             dbf_file_path = path.join(dbf_dir, dbf_file_name)
             csv_file_path = path.join(csv_dir, csv_file_name)
     
-            # =========================
-            # 1️⃣ DBC → DBF
-            # =========================
+            # 1️⃣ Convert DBC → DBF
             result1 = subprocess.run(
                 [ProjPaths.BLAST_DBF_PATH, file, dbf_file_path],
-                capture_output=True,
-                text=True
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
             )
     
             if result1.returncode != 0:
-                print(f"[WARN] BLAST_DBF failed: {file}")
-                print(result1.stderr)
-    
-            # Validate DBF
-            if not path.exists(dbf_file_path) or os.path.getsize(dbf_file_path) == 0:
-                print(f"[ERROR] DBF not created or empty: {file}")
+                print(f"Erro convertendo DBC para DBF: {file}")
                 return
     
-            # =========================
-            # 2️⃣ DBF → CSV
-            # =========================
+            # 2️⃣ Convert DBF → CSV
             result2 = subprocess.run(
                 [ProjPaths.DBF2CSV_PATH, dbf_file_path, csv_file_path, cnes, sistema],
-                capture_output=True,
-                text=True
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
             )
     
             if result2.returncode != 0:
-                print(f"[WARN] DBF2CSV failed: {dbf_file_path}")
-                print(result2.stderr)
-    
-            # Validate CSV
-            if not path.exists(csv_file_path):
-                print(f"[ERROR] CSV not created: {dbf_file_path}")
+                print(f"Erro convertendo DBF para CSV: {dbf_file_path}")
                 return
     
-            if os.path.getsize(csv_file_path) == 0:
-                print(f"[WARN] CSV empty (likely no matching CNES): {csv_file_path}")
-                return
-    
-            # Optional: check header sanity
-            with open(csv_file_path, 'r', encoding='latin1') as f:
-                first_line = f.readline().strip()
-                if not first_line:
-                    print(f"[ERROR] CSV has no header: {csv_file_path}")
-                    return
-    
-            # =========================
-            # 3️⃣ CLEANUP
-            # =========================
-            try:
+            # 3️⃣ DELETE DBF immediately (saves GBs)
+            if path.exists(dbf_file_path):
                 os.remove(dbf_file_path)
-            except:
-                pass
     
-            try:
+            # 4️⃣ DELETE original DBC immediately (VERY IMPORTANT)
+            if path.exists(file):
                 os.remove(file)
-            except:
-                pass
-
+    
         except Exception as e:
-            print(f"[ERROR] Failed processing {file}: {e}")
+            print(f"Erro processando {file}: {e}")
 
     @staticmethod
     def unite_files(system: str):
@@ -1239,22 +1203,16 @@ class Processing:
         #PROCESSAMENTO DE ARQUIVOS RECENTES (>= 2008)
         # Aqui o filtro por CNES já foi feito ou é padrão
         else:
-            try:
-                df = pd.read_csv(file_path, usecols=SIA_RELEVANT_FIELDS, dtype=str)
-                
-                # Limpa as colunas numéricas
-                df['PA_VALAPR'] = pd.to_numeric(df['PA_VALAPR'].str.strip(), errors='coerce').fillna(0)
-                df['PA_QTDAPR'] = pd.to_numeric(df['PA_QTDAPR'].str.strip(), errors='coerce').fillna(0)
-            except pd.errors.EmptyDataError:
-                print(f"[SKIP] Pandas empty CSV: {file_path}")
-                return MonthInfo.empty(when, 'IVR', rate)
-            except Exception as e:
-                print(f"[ERROR] Failed reading {file_path}: {e}")
-                return MonthInfo.empty(when, 'IVR', rate)
+            df = pd.read_csv(file_path, usecols=SIA_RELEVANT_FIELDS, dtype=str)
+            
+            # Limpa as colunas numéricas
+            df['PA_VALAPR'] = pd.to_numeric(df['PA_VALAPR'].str.strip(), errors='coerce').fillna(0)
+            df['PA_QTDAPR'] = pd.to_numeric(df['PA_QTDAPR'].str.strip(), errors='coerce').fillna(0)
+
+
         
         if df.empty:
             rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
-            print(f"[SKIP] DataFrame empty: {file_path}")
             return MonthInfo.empty(when, 'IVR', rate)
 
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
