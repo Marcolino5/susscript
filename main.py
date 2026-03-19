@@ -725,6 +725,9 @@ class Conversions:
                 capture_output=True,
                 text=True
             )
+
+            print(f"\n[DEBUG] Converting: {file}")
+            print(f"[DEBUG] Return code: {result1.returncode}")
     
             if result1.returncode != 0:
                 print(f"Erro convertendo DBC para DBF: {file}")
