@@ -693,7 +693,7 @@ class Conversions:
         }
     
         try:
-            filename = path.basename(file)
+            filename = path.split(file)[-1]
             prefix = filename[0:2]
     
             cnes = ProjParams.get_cnes()
@@ -703,6 +703,8 @@ class Conversions:
                     cnes = "TODOS"
             except:
                 pass
+
+            print(f"CNES: {cnes}")
     
             dbf_file_name = filename.lower().replace(".dbc", ".dbf")
             csv_file_name = filename.lower().replace(".dbc", ".csv")
