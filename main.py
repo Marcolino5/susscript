@@ -551,6 +551,7 @@ class Downloads:
 
         with open(local_file_path, 'wb') as f:
             ftp.retrbinary(f"RETR {file}", f.write)
+            print(f"file: {file}, f: {f.write}")
 
         print(f"Downloaded {file_name}")
         ftp.quit()
