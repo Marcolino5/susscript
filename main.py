@@ -703,8 +703,6 @@ class Conversions:
                     cnes = "TODOS"
             except:
                 pass
-
-            print(f"CNES: {cnes}")
     
             dbf_file_name = filename.lower().replace(".dbc", ".dbf")
             csv_file_name = filename.lower().replace(".dbc", ".csv")
@@ -1358,9 +1356,10 @@ class Processing:
 
         sia_func, sih_func = FUNCTION_TABLE[method]
         months_info: dict[str, MonthInfo] = {}
-
+        
         for f_sia in sia_files:
             m = sia_func(f_sia)
+            print(f"m: {m}, f_sia: {f_sia}")
 
             if not m:
                 continue
@@ -1372,6 +1371,7 @@ class Processing:
 
         for f_sih in sih_files:
             m = sih_func(f_sih)
+            print(f"m: {m}, f_sih: {f_sih}")
 
             if not m:
                 continue
