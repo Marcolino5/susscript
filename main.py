@@ -193,16 +193,16 @@ class ProjPaths:
             # 2️⃣ Cria wrapper script
             with open("dbc2csv.R", "w") as f:
                 f.write("""#!/usr/bin/env Rscript
-                
+
+# 🔥 FORCE LIB PATH
+.libPaths(c("/usr/local/lib/R/site-library", .libPaths()))
+              
 args <- commandArgs(trailingOnly=TRUE)
 
 input <- args[1]
 output <- args[2]
 cnes <- args[3]
 sistema <- args[4]
-
-# 🔥 FORCE LIB PATH
-.libPaths(c("/usr/local/lib/R/site-library", .libPaths()))
 
 library(read.dbc)
 
