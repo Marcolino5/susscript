@@ -551,7 +551,6 @@ class Downloads:
 
         with open(local_file_path, 'wb') as f:
             ftp.retrbinary(f"RETR {file}", f.write)
-            print(f"file: {file}, f: {f.write}")
 
         print(f"Downloaded {file_name}")
         ftp.quit()
@@ -597,13 +596,11 @@ class Downloads:
                     # 🔥 BAIXA O ARQUIVO
                     with open(local_file_path, 'wb') as f:
                         ftp.retrbinary(f"RETR {file}", f.write)
-                        print(f"file: {file}, f.write: {f.write}")
                     ftp.quit()
     
                     # 🔥 VALIDA TAMANHO
                     local_size = os.path.getsize(local_file_path)
     
-                    print(f"[DEBUG] {file_name}: {local_size}/{remote_size}")
     
                     if remote_size is not None and local_size != remote_size:
                         print(f"[WARN] Size mismatch (tentativa {attempt+1}): {file_name}")
@@ -749,15 +746,6 @@ class Conversions:
                 capture_output=True,
                 text=True
             )
-
-            print(f"\n[DEBUG] Converting: {file}")
-            print(f"[DEBUG] Return code: {result1.returncode}")
-
-            print("[STDOUT]")
-            print(result1.stdout if result1.stdout else "(empty)")
-            
-            print("[STDERR]")
-            print(result1.stderr if result1.stderr else "(empty)")
             
             if result1.returncode != 0:
                 raise Exception(f"DBC conversion failed: {file}")
@@ -1400,7 +1388,6 @@ class Processing:
         
         for f_sia in sia_files:
             m = sia_func(f_sia)
-            print(f"m: {m}, f_sia: {f_sia}")
 
             if not m:
                 continue
@@ -1412,7 +1399,6 @@ class Processing:
 
         for f_sih in sih_files:
             m = sih_func(f_sih)
-            print(f"m: {m}, f_sih: {f_sih}")
 
             if not m:
                 continue
@@ -1807,13 +1793,9 @@ def main():
         sih_files = [path.join(ProjPaths.SIH_CSVS_DIR, file) for file in os.listdir(ProjPaths.SIH_CSVS_DIR)]
         sia_files = [path.join(ProjPaths.SIA_CSVS_DIR, file) for file in os.listdir(ProjPaths.SIA_CSVS_DIR)]
 
-        print(f"sih_files: {sih_files}")
-        print(f"sia_files: {sia_files}")
         months += Processing.months(sia_files, sih_files, ProjParams.METHOD)
-        print(f"Months right now: {months}")
         ProjPaths.empty_dirs()
         ProjPaths.create_paths()
-    print(f"Months after the loop: {months}")
     years = Processing.year_results(months)
     total = Processing.total_result(months)
 
