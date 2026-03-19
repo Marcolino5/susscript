@@ -728,6 +728,18 @@ class Conversions:
 
             print(f"\n[DEBUG] Converting: {file}")
             print(f"[DEBUG] Return code: {result1.returncode}")
+
+            print("[STDOUT]")
+            print(result1.stdout if result1.stdout else "(empty)")
+            
+            print("[STDERR]")
+            print(result1.stderr if result1.stderr else "(empty)")
+            
+            if result1.returncode != 0:
+                raise Exception(f"DBC conversion failed: {file}")
+            
+            if not os.path.exists(dbf_file_path):
+                raise Exception(f"DBF not created: {file}")
     
             if result1.returncode != 0:
                 print(f"Erro convertendo DBC para DBF: {file}")
