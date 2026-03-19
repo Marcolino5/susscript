@@ -11,7 +11,6 @@ import numpy as np
 import datetime
 import sys
 import os
-import time
 
 SIA_RELEVANT_FIELDS = np.array(['PA_CMP', 'PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR'])
 SIH_RELEVANT_FIELDS = np.array(['SP_AA', 'SP_MM','SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO'])
@@ -573,50 +572,29 @@ class Downloads:
 
     @staticmethod
     def download_many(files: list[str]):
-    
         PREFIX_LOCATION = {
-            'PA': ProjPaths.SIA_DOWNLOAD_DIR,
-            'SP': ProjPaths.SIH_DOWNLOAD_DIR,
-            'RD': ProjPaths.SIH_DOWNLOAD_DIR
+        'PA': ProjPaths.SIA_DOWNLOAD_DIR,
+        'SP': ProjPaths.SIH_DOWNLOAD_DIR ,
+        'RD': ProjPaths.SIH_DOWNLOAD_DIR
         }
-    
+        ftp = FTP("ftp.datasus.gov.br")
+        ftp.login()
         for file in files:
             file_name = path.split(file)[-1]
             file_prefix = file_name[:2]
-            download_dir = PREFIX_LOCATION[file_prefix]
-            local_file_path = path.join(download_dir, file_name)
-    
-            for attempt in range(3):
-                try:
-                    ftp = FTP("ftp.datasus.gov.br")
-                    ftp.login()
-    
-                    # 🔥 PEGA TAMANHO REMOTO
-                    remote_size = ftp.size(file)
-    
-                    # 🔥 BAIXA O ARQUIVO
-                    with open(local_file_path, 'wb') as f:
-                        ftp.retrbinary(f"RETR {file}", f.write)
-                    ftp.quit()
-    
-                    # 🔥 VALIDA TAMANHO
-                    local_size = os.path.getsize(local_file_path)
-    
-    
-                    if remote_size is not None and local_size != remote_size:
-                        print(f"[WARN] Size mismatch (tentativa {attempt+1}): {file_name}")
-                        time.sleep(1)
-                        continue  # tenta de novo
-    
-                    print(f"Downloaded {file_name}")
-                    break  # sucesso
-    
-                except Exception as e:
-                    print(f"[ERROR] tentativa {attempt+1} falhou para {file_name}: {e}")
-                    time.sleep(1)
-    
-                    if attempt == 2:
-                        raise Exception(f"Falha definitiva ao baixar {file_name}")
+            dowload_dir_path = PREFIX_LOCATION[file_prefix]
+            local_file_path = path.join(dowload_dir_path, file_name)
+            try:
+                with open(local_file_path, 'wb') as f:
+                    ftp.retrbinary(f"RETR {file}", f.write)
+            except:
+                ftp = FTP("ftp.datasus.gov.br")
+                ftp.login()
+                with open(local_file_path, 'wb') as f:
+                    ftp.retrbinary(f"RETR {file}", f.write)
+
+            print(f"Downloaded {file_name}")
+        ftp.quit()
 
     @staticmethod
     def find_files(sistema: str, estado: str, inicio: Date, fim: Date):
@@ -715,11 +693,9 @@ class Conversions:
         }
     
         try:
-            filename = path.split(file)[-1]
+            filename = path.basename(file)
             prefix = filename[0:2]
-
-            print(f"filename: {filename}, file: {file}, prefix: {prefix}")
-            
+    
             cnes = ProjParams.get_cnes()
     
             try:
@@ -728,8 +704,8 @@ class Conversions:
             except:
                 pass
     
-            dbf_file_name = filename.replace(".dbc", ".dbf")
-            csv_file_name = filename.replace(".dbc", ".csv")
+            dbf_file_name = filename.lower().replace(".dbc", ".dbf")
+            csv_file_name = filename.lower().replace(".dbc", ".csv")
     
             csv_dir = PREFIX_CSV_DIR[prefix]
             dbf_dir = PREFIX_DBF_DIR[prefix]
@@ -744,15 +720,9 @@ class Conversions:
             # 1️⃣ Convert DBC → DBF
             result1 = subprocess.run(
                 [ProjPaths.BLAST_DBF_PATH, file, dbf_file_path],
-                capture_output=True,
-                text=True
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
             )
-            
-            if result1.returncode != 0:
-                raise Exception(f"DBC conversion failed: {file}")
-            
-            if not os.path.exists(dbf_file_path):
-                raise Exception(f"DBF not created: {file}")
     
             if result1.returncode != 0:
                 print(f"Erro convertendo DBC para DBF: {file}")
@@ -761,8 +731,8 @@ class Conversions:
             # 2️⃣ Convert DBF → CSV
             result2 = subprocess.run(
                 [ProjPaths.DBF2CSV_PATH, dbf_file_path, csv_file_path, cnes, sistema],
-                capture_output=True,
-                text=True
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
             )
     
             if result2.returncode != 0:
@@ -1192,62 +1162,82 @@ class LegacyMatcher:
         return None
     
 class Processing:
-    import os
-
     @staticmethod
     def month_SIA_IVR(file_path: str) -> MonthInfo:
+        #df = pd.read_csv(file_path, usecols=SIA_RELEVANT_FIELDS)
         when = Date.from_sus_file_name(file_path)
         print(f"Processando mês: {when}")
-    
-        if not os.path.exists(file_path):
-            print(f"AVISO: arquivo não encontrado: {file_path}")
-            rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
-            return MonthInfo.empty(when, 'IVR', rate)
-    
-        try:
-            if when.year < 2008:
-                # PROCESSAMENTO DE ARQUIVOS ANTIGOS
-                colunas_antigas = ['PA_DATREF', 'PA_CODPRO', 'PA_QTDAPR', 'PA_VALAPR', 'PA_CODUNI']
+        
+        #PROCESSAMENTO DE ARQUIVOS ANTIGOS
+        if when.year < 2008:
+            colunas_antigas = ['PA_DATREF', 'PA_CODPRO', 'PA_QTDAPR', 'PA_VALAPR', 'PA_CODUNI']
+            try:
+                #Lê o arquivo CSV completo (gerado com filtro "TODOS")
                 df = pd.read_csv(file_path, usecols=colunas_antigas, dtype=str)
                 df.rename(columns={'PA_DATREF': 'PA_CMP', 'PA_CODPRO': 'PA_PROC_ID'}, inplace=True)
+                
+                # Converte para números AGORA, pois o LegacyMatcher precisa somar
                 df['PA_VALAPR'] = pd.to_numeric(df['PA_VALAPR'].str.strip(), errors='coerce').fillna(0)
                 df['PA_QTDAPR'] = pd.to_numeric(df['PA_QTDAPR'].str.strip(), errors='coerce').fillna(0)
-    
+
+                #Busca o valor total esperado na tabela Excel (Gabarito)
                 target_val = LegacyMatcher.get_expected_total('SIA', when, ProjParams.CNPJ)
+                
+                #Descobre qual código (PA_CODUNI) tem essa soma no arquivo
                 legacy_code = LegacyMatcher.identify_legacy_code(df, target_val)
+                
                 if legacy_code:
+                    #Filtra mantendo apenas as linhas do hospital encontrado
                     df = df[df['PA_CODUNI'] == legacy_code]
                     print(f"DEBUG: Filtrado {len(df)} linhas para o código antigo {legacy_code}")
                 else:
+                    # Se não achou match, zera o dataframe
                     df = pd.DataFrame(columns=df.columns)
-            else:
-                # PROCESSAMENTO DE ARQUIVOS RECENTES
-                df = pd.read_csv(file_path, usecols=SIA_RELEVANT_FIELDS, dtype=str)
-                df['PA_VALAPR'] = pd.to_numeric(df['PA_VALAPR'].str.strip(), errors='coerce').fillna(0)
-                df['PA_QTDAPR'] = pd.to_numeric(df['PA_QTDAPR'].str.strip(), errors='coerce').fillna(0)
-    
-        except Exception as e:
-            # Handle any CSV read or processing error gracefully
-            print(f"Erro no processamento do arquivo {file_path}: {e}")
-            df = pd.DataFrame(columns=['PA_CMP', 'PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR'])
-    
+
+            except ValueError:
+                df = pd.DataFrame(columns=['PA_CMP', 'PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR'])
+            except Exception as e:
+                print(f"Erro no processamento legado: {e}")
+                df = pd.DataFrame(columns=['PA_CMP', 'PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR'])
+
+        #PROCESSAMENTO DE ARQUIVOS RECENTES (>= 2008)
+        # Aqui o filtro por CNES já foi feito ou é padrão
+        else:
+            df = pd.read_csv(file_path, usecols=SIA_RELEVANT_FIELDS, dtype=str)
+            
+            # Limpa as colunas numéricas
+            df['PA_VALAPR'] = pd.to_numeric(df['PA_VALAPR'].str.strip(), errors='coerce').fillna(0)
+            df['PA_QTDAPR'] = pd.to_numeric(df['PA_QTDAPR'].str.strip(), errors='coerce').fillna(0)
+
+
+        
         if df.empty:
             rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
             return MonthInfo.empty(when, 'IVR', rate)
-    
-        # Continuar processamento normalmente
+
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
+        
+        # 1. Calcula o valor devido (IVR) para CADA procedimento
         df['VALOR_DEVIDO_IVR'] = df['PA_VALAPR'] * 1.5
+        
+        # Calcula os totais
         brute_sum = df["PA_VALAPR"].sum()
         expected_sum = df["VALOR_DEVIDO_IVR"].sum()
+        
+        # Selecionamos as colunas que queremos no laudo detalhado
         colunas_detalhe = ['PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR', 'VALOR_DEVIDO_IVR']
+        
+        # Adiciona coluna auxiliar para busca de descrição depois
         df['TIPO_SISTEMA'] = 'SIA'
+        
         procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
-    
+
+        #VERIFICA SE PEGOU ALGUMA COISA
         print(f"DEBUG PYTHON: Encontrei {len(procedimentos_lista)} procedimentos para o mês {when}")
-        if procedimentos_lista:
+        if len(procedimentos_lista) > 0:
             print(f"Exemplo do primeiro item: {procedimentos_lista[0]}")
-    
+        
+        #Passa a lista de procedimentos para o construtor da MonthInfo
         return MonthInfo(when, 'IVR', 'SIA', expected_sum, brute_sum, rate, procedimentos_lista)
 
     @staticmethod
@@ -1366,7 +1356,7 @@ class Processing:
 
         sia_func, sih_func = FUNCTION_TABLE[method]
         months_info: dict[str, MonthInfo] = {}
-        
+
         for f_sia in sia_files:
             m = sia_func(f_sia)
 
@@ -1777,10 +1767,14 @@ def main():
         months += Processing.months(sia_files, sih_files, ProjParams.METHOD)
         ProjPaths.empty_dirs()
         ProjPaths.create_paths()
+    print(f"Months: {months}")
     years = Processing.year_results(months)
     total = Processing.total_result(months)
 
+    print("Before LaTeX Builder:", os.path.exists('tables/desc_procedimento.csv'))
     LatexBuilder.build_latex_file(months, years, total, ProjParams.METHOD)
+    print("After LaTeX Builder:", os.path.exists('tables/desc_procedimento.csv'))
     PdfBuilder.write_pdf(path.join(ProjPaths.RESULTS_DIR, 'laudo.pdf'))
+    print("After PDF Builder:", os.path.exists('tables/desc_procedimento.csv'))
 
 main()
