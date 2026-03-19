@@ -721,7 +721,9 @@ class Conversions:
     
             # 1️⃣ Convert DBC → DBF
             result1 = subprocess.run(
-                [ProjPaths.BLAST_DBF_PATH, file, dbf_file_path]
+                [ProjPaths.BLAST_DBF_PATH, file, dbf_file_path],
+                capture_output=True,
+                text=True
             )
     
             if result1.returncode != 0:
@@ -730,7 +732,9 @@ class Conversions:
     
             # 2️⃣ Convert DBF → CSV
             result2 = subprocess.run(
-                [ProjPaths.DBF2CSV_PATH, dbf_file_path, csv_file_path, cnes, sistema]
+                [ProjPaths.DBF2CSV_PATH, dbf_file_path, csv_file_path, cnes, sistema],
+                capture_output=True,
+                text=True
             )
     
             if result2.returncode != 0:
