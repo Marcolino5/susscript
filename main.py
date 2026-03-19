@@ -173,77 +173,32 @@ class ProjPaths:
         if not os.path.exists(ProjPaths.UNITED_CSV_DIR):
             os.makedirs(ProjPaths.UNITED_CSV_DIR)
 
-    
+
     @staticmethod
     def create_blast_dbf():
-    
         if not os.path.exists(ProjPaths.BLAST_DBF_PATH):
             os.chdir(ProjPaths.BINARIES_DIR)
-    
-            # 1️⃣ Clona repo (mantido por consistência estrutural)
-            subprocess.run(
-                ["git", "clone", "https://github.com/danicat/read.dbc.git"],
+            subprocess.run(["git", "clone", "https://github.com/eaglebh/blast-dbf.git"],
                 capture_output=True,
                 text=True,
                 check=True
             )
-    
-            os.chdir("read.dbc")
-    
-            # 2️⃣ Cria wrapper script
-            with open("dbc2csv.R", "w") as f:
-                f.write("""#!/usr/bin/env Rscript
 
-# 🔥 FORCE LIB PATH
-.libPaths(c("/usr/local/lib/R/site-library", .libPaths()))
-library(read.dbc)
-              
-args <- commandArgs(trailingOnly=TRUE)
+            os.chdir("blast-dbf")
+            subprocess.run(["make"],
+                capture_output=True,
+                text=True,
+                check=True
+            )
 
-input <- args[1]
-output <- args[2]
-cnes <- args[3]
-sistema <- args[4]
 
-df <- read.dbc(input)
+            shutil.move("blast-dbf", path.join(ProjPaths.BINARIES_DIR, "BLAST_DBF"))
 
-if (cnes != "TODOS") {
-  if ("CNES" %in% colnames(df)) {
-    df <- df[df$CNES == cnes, ]
-  }
-}
+            os.chdir(ProjPaths.BINARIES_DIR)
 
-write.table(
-  df,
-  file = output,
-  sep = ";",
-  dec = ".",
-  row.names = FALSE,
-  col.names = TRUE,
-  fileEncoding = "UTF-8"
-)
-""")
-    
-        # 3️⃣ "Build" (equivalente ao make antigo)
-        subprocess.run(
-            ["chmod", "+x", "dbc2csv.R"],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-    
-        # 4️⃣ Move como BLAST_DBF (mesmo nome de antes)
-        shutil.move(
-            "dbc2csv.R",
-            path.join(ProjPaths.BINARIES_DIR, "BLAST_DBF")
-        )
-    
-        # 5️⃣ Volta e limpa (mesma lógica do antigo)
-        os.chdir(ProjPaths.BINARIES_DIR)
-        shutil.rmtree("read.dbc")
-    
-        # 6️⃣ Volta pro scripts dir
-        os.chdir(ProjPaths.SCRIPTS_DIR)
+            shutil.rmtree("blast-dbf")
+
+            os.chdir(ProjPaths.SCRIPTS_DIR)
 
 
     @staticmethod
@@ -754,10 +709,16 @@ class Conversions:
             'RD': ProjPaths.SIH_CSVS_DIR
         }
     
+        PREFIX_DBF_DIR = {
+            'PA': ProjPaths.SIA_DBFS_DIR,
+            'SP': ProjPaths.SIH_DBFS_DIR,
+            'RD': ProjPaths.SIH_DBFS_DIR
+        }
+    
         try:
             filename = path.split(file)[-1]
             prefix = filename[0:2]
-    
+
             print(f"filename: {filename}, file: {file}, prefix: {prefix}")
             
             cnes = ProjParams.get_cnes()
@@ -768,43 +729,61 @@ class Conversions:
             except:
                 pass
     
+            dbf_file_name = filename.replace(".dbc", ".dbf")
             csv_file_name = filename.replace(".dbc", ".csv")
+    
             csv_dir = PREFIX_CSV_DIR[prefix]
+            dbf_dir = PREFIX_DBF_DIR[prefix]
             sistema = PREFIX_SYSTEM[prefix]
     
             os.makedirs(csv_dir, exist_ok=True)
+            os.makedirs(dbf_dir, exist_ok=True)
     
+            dbf_file_path = path.join(dbf_dir, dbf_file_name)
             csv_file_path = path.join(csv_dir, csv_file_name)
     
-            # 🔥 NOVO: DBC → CSV direto com R
-            result = subprocess.run(
-                [
-                    ProjPaths.BLAST_DBF_PATH,  # agora é o wrapper R
-                    file,
-                    csv_file_path,
-                    cnes,
-                    sistema
-                ],
+            # 1️⃣ Convert DBC → DBF
+            result1 = subprocess.run(
+                [ProjPaths.BLAST_DBF_PATH, file, dbf_file_path],
+                capture_output=True,
+                text=True
+            )
+
+            print(f"\n[DEBUG] Converting: {file}")
+            print(f"[DEBUG] Return code: {result1.returncode}")
+
+            print("[STDOUT]")
+            print(result1.stdout if result1.stdout else "(empty)")
+            
+            print("[STDERR]")
+            print(result1.stderr if result1.stderr else "(empty)")
+            
+            if result1.returncode != 0:
+                raise Exception(f"DBC conversion failed: {file}")
+            
+            if not os.path.exists(dbf_file_path):
+                raise Exception(f"DBF not created: {file}")
+    
+            if result1.returncode != 0:
+                print(f"Erro convertendo DBC para DBF: {file}")
+                return
+    
+            # 2️⃣ Convert DBF → CSV
+            result2 = subprocess.run(
+                [ProjPaths.DBF2CSV_PATH, dbf_file_path, csv_file_path, cnes, sistema],
                 capture_output=True,
                 text=True
             )
     
-            print(f"\n[DEBUG] Converting: {file}")
-            print(f"[DEBUG] Return code: {result.returncode}")
+            if result2.returncode != 0:
+                print(f"Erro convertendo DBF para CSV: {dbf_file_path}")
+                return
     
-            print("[STDOUT]")
-            print(result.stdout if result.stdout else "(empty)")
-            
-            print("[STDERR]")
-            print(result.stderr if result.stderr else "(empty)")
+            # 3️⃣ DELETE DBF immediately (saves GBs)
+            if path.exists(dbf_file_path):
+                os.remove(dbf_file_path)
     
-            if result.returncode != 0:
-                raise Exception(f"DBC conversion failed: {file}")
-    
-            if not os.path.exists(csv_file_path):
-                raise Exception(f"CSV not created: {file}")
-    
-            # 🔥 DELETE DBC (mantém igual)
+            # 4️⃣ DELETE original DBC immediately (VERY IMPORTANT)
             if path.exists(file):
                 os.remove(file)
     
