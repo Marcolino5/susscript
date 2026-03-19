@@ -1191,82 +1191,62 @@ class LegacyMatcher:
         return None
     
 class Processing:
+    import os
+
     @staticmethod
     def month_SIA_IVR(file_path: str) -> MonthInfo:
-        #df = pd.read_csv(file_path, usecols=SIA_RELEVANT_FIELDS)
         when = Date.from_sus_file_name(file_path)
         print(f"Processando mês: {when}")
-        
-        #PROCESSAMENTO DE ARQUIVOS ANTIGOS
-        if when.year < 2008:
-            colunas_antigas = ['PA_DATREF', 'PA_CODPRO', 'PA_QTDAPR', 'PA_VALAPR', 'PA_CODUNI']
-            try:
-                #Lê o arquivo CSV completo (gerado com filtro "TODOS")
+    
+        if not os.path.exists(file_path):
+            print(f"AVISO: arquivo não encontrado: {file_path}")
+            rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
+            return MonthInfo.empty(when, 'IVR', rate)
+    
+        try:
+            if when.year < 2008:
+                # PROCESSAMENTO DE ARQUIVOS ANTIGOS
+                colunas_antigas = ['PA_DATREF', 'PA_CODPRO', 'PA_QTDAPR', 'PA_VALAPR', 'PA_CODUNI']
                 df = pd.read_csv(file_path, usecols=colunas_antigas, dtype=str)
                 df.rename(columns={'PA_DATREF': 'PA_CMP', 'PA_CODPRO': 'PA_PROC_ID'}, inplace=True)
-                
-                # Converte para números AGORA, pois o LegacyMatcher precisa somar
                 df['PA_VALAPR'] = pd.to_numeric(df['PA_VALAPR'].str.strip(), errors='coerce').fillna(0)
                 df['PA_QTDAPR'] = pd.to_numeric(df['PA_QTDAPR'].str.strip(), errors='coerce').fillna(0)
-
-                #Busca o valor total esperado na tabela Excel (Gabarito)
+    
                 target_val = LegacyMatcher.get_expected_total('SIA', when, ProjParams.CNPJ)
-                
-                #Descobre qual código (PA_CODUNI) tem essa soma no arquivo
                 legacy_code = LegacyMatcher.identify_legacy_code(df, target_val)
-                
                 if legacy_code:
-                    #Filtra mantendo apenas as linhas do hospital encontrado
                     df = df[df['PA_CODUNI'] == legacy_code]
                     print(f"DEBUG: Filtrado {len(df)} linhas para o código antigo {legacy_code}")
                 else:
-                    # Se não achou match, zera o dataframe
                     df = pd.DataFrame(columns=df.columns)
-
-            except ValueError:
-                df = pd.DataFrame(columns=['PA_CMP', 'PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR'])
-            except Exception as e:
-                print(f"Erro no processamento legado: {e}")
-                df = pd.DataFrame(columns=['PA_CMP', 'PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR'])
-
-        #PROCESSAMENTO DE ARQUIVOS RECENTES (>= 2008)
-        # Aqui o filtro por CNES já foi feito ou é padrão
-        else:
-            df = pd.read_csv(file_path, usecols=SIA_RELEVANT_FIELDS, dtype=str)
-            
-            # Limpa as colunas numéricas
-            df['PA_VALAPR'] = pd.to_numeric(df['PA_VALAPR'].str.strip(), errors='coerce').fillna(0)
-            df['PA_QTDAPR'] = pd.to_numeric(df['PA_QTDAPR'].str.strip(), errors='coerce').fillna(0)
-
-
-        
+            else:
+                # PROCESSAMENTO DE ARQUIVOS RECENTES
+                df = pd.read_csv(file_path, usecols=SIA_RELEVANT_FIELDS, dtype=str)
+                df['PA_VALAPR'] = pd.to_numeric(df['PA_VALAPR'].str.strip(), errors='coerce').fillna(0)
+                df['PA_QTDAPR'] = pd.to_numeric(df['PA_QTDAPR'].str.strip(), errors='coerce').fillna(0)
+    
+        except Exception as e:
+            # Handle any CSV read or processing error gracefully
+            print(f"Erro no processamento do arquivo {file_path}: {e}")
+            df = pd.DataFrame(columns=['PA_CMP', 'PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR'])
+    
         if df.empty:
             rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
             return MonthInfo.empty(when, 'IVR', rate)
-
+    
+        # Continuar processamento normalmente
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
-        
-        # 1. Calcula o valor devido (IVR) para CADA procedimento
         df['VALOR_DEVIDO_IVR'] = df['PA_VALAPR'] * 1.5
-        
-        # Calcula os totais
         brute_sum = df["PA_VALAPR"].sum()
         expected_sum = df["VALOR_DEVIDO_IVR"].sum()
-        
-        # Selecionamos as colunas que queremos no laudo detalhado
         colunas_detalhe = ['PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR', 'VALOR_DEVIDO_IVR']
-        
-        # Adiciona coluna auxiliar para busca de descrição depois
         df['TIPO_SISTEMA'] = 'SIA'
-        
         procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
-
-        #VERIFICA SE PEGOU ALGUMA COISA
+    
         print(f"DEBUG PYTHON: Encontrei {len(procedimentos_lista)} procedimentos para o mês {when}")
-        if len(procedimentos_lista) > 0:
+        if procedimentos_lista:
             print(f"Exemplo do primeiro item: {procedimentos_lista[0]}")
-        
-        #Passa a lista de procedimentos para o construtor da MonthInfo
+    
         return MonthInfo(when, 'IVR', 'SIA', expected_sum, brute_sum, rate, procedimentos_lista)
 
     @staticmethod
