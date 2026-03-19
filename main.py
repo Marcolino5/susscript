@@ -193,36 +193,35 @@ class ProjPaths:
             # 2️⃣ Cria wrapper script
             with open("dbc2csv.R", "w") as f:
                 f.write("""#!/usr/bin/env Rscript
+                
 args <- commandArgs(trailingOnly=TRUE)
-    
+
 input <- args[1]
 output <- args[2]
 cnes <- args[3]
 sistema <- args[4]
-    
+
+# 🔥 FORCE LIB PATH
+.libPaths(c("/usr/local/lib/R/site-library", .libPaths()))
+
 library(read.dbc)
-    
+
 df <- read.dbc(input)
-    
-# padroniza colunas
-colnames(df) <- toupper(colnames(df))
-    
-# filtro CNES
+
 if (cnes != "TODOS") {
-    if ("CNES" %in% colnames(df)) {
-    df$CNES <- as.character(df$CNES)
+  if ("CNES" %in% colnames(df)) {
     df <- df[df$CNES == cnes, ]
-    }
+  }
 }
-    
+
 write.table(
-    df,
-    file = output,
-    sep = ";",
-    dec = ".",
-    row.names = FALSE,
-    col.names = TRUE,
-    fileEncoding = "UTF-8"
+  df,
+  file = output,
+  sep = ";",
+  dec = ".",
+  row.names = FALSE,
+  col.names = TRUE,
+  fileEncoding = "UTF-8"
 )
 """)
     
