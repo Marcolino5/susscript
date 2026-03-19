@@ -196,6 +196,7 @@ class ProjPaths:
 
 # 🔥 FORCE LIB PATH
 .libPaths(c("/usr/local/lib/R/site-library", .libPaths()))
+library(read.dbc)
               
 args <- commandArgs(trailingOnly=TRUE)
 
@@ -203,8 +204,6 @@ input <- args[1]
 output <- args[2]
 cnes <- args[3]
 sistema <- args[4]
-
-library(read.dbc)
 
 df <- read.dbc(input)
 
