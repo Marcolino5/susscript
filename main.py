@@ -572,29 +572,52 @@ class Downloads:
 
     @staticmethod
     def download_many(files: list[str]):
+    
         PREFIX_LOCATION = {
-        'PA': ProjPaths.SIA_DOWNLOAD_DIR,
-        'SP': ProjPaths.SIH_DOWNLOAD_DIR ,
-        'RD': ProjPaths.SIH_DOWNLOAD_DIR
+            'PA': ProjPaths.SIA_DOWNLOAD_DIR,
+            'SP': ProjPaths.SIH_DOWNLOAD_DIR,
+            'RD': ProjPaths.SIH_DOWNLOAD_DIR
         }
-        ftp = FTP("ftp.datasus.gov.br")
-        ftp.login()
+    
         for file in files:
             file_name = path.split(file)[-1]
             file_prefix = file_name[:2]
-            dowload_dir_path = PREFIX_LOCATION[file_prefix]
-            local_file_path = path.join(dowload_dir_path, file_name)
-            try:
-                with open(local_file_path, 'wb') as f:
-                    ftp.retrbinary(f"RETR {file}", f.write)
-            except:
-                ftp = FTP("ftp.datasus.gov.br")
-                ftp.login()
-                with open(local_file_path, 'wb') as f:
-                    ftp.retrbinary(f"RETR {file}", f.write)
-
-            print(f"Downloaded {file_name}")
-        ftp.quit()
+            download_dir = PREFIX_LOCATION[file_prefix]
+            local_file_path = path.join(download_dir, file_name)
+    
+            for attempt in range(3):
+                try:
+                    ftp = FTP("ftp.datasus.gov.br")
+                    ftp.login()
+    
+                    # 🔥 PEGA TAMANHO REMOTO
+                    remote_size = ftp.size(file)
+    
+                    # 🔥 BAIXA O ARQUIVO
+                    with open(local_file_path, 'wb') as f:
+                        ftp.retrbinary(f"RETR {file}", f.write)
+    
+                    ftp.quit()
+    
+                    # 🔥 VALIDA TAMANHO
+                    local_size = os.path.getsize(local_file_path)
+    
+                    print(f"[DEBUG] {file_name}: {local_size}/{remote_size}")
+    
+                    if remote_size is not None and local_size != remote_size:
+                        print(f"[WARN] Size mismatch (tentativa {attempt+1}): {file_name}")
+                        time.sleep(1)
+                        continue  # tenta de novo
+    
+                    print(f"Downloaded {file_name}")
+                    break  # sucesso
+    
+                except Exception as e:
+                    print(f"[ERROR] tentativa {attempt+1} falhou para {file_name}: {e}")
+                    time.sleep(1)
+    
+                    if attempt == 2:
+                        raise Exception(f"Falha definitiva ao baixar {file_name}")
 
     @staticmethod
     def find_files(sistema: str, estado: str, inicio: Date, fim: Date):
