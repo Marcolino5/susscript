@@ -673,7 +673,7 @@ class Conversions:
 
     @staticmethod
     def convert_file_to_csv(file: str):
-    
+
         PREFIX_SYSTEM = {
             'PA': 'SIA',
             'SP': 'SIH',
@@ -696,8 +696,14 @@ class Conversions:
             filename = path.basename(file)
             prefix = filename[0:2]
     
+            # Safety check for unknown prefixes
+            if prefix not in PREFIX_SYSTEM:
+                print(f"[SKIP] Unknown prefix: {filename}")
+                return
+    
             cnes = ProjParams.get_cnes()
     
+            # Old files logic
             try:
                 if Date.from_sus_file_name(filename).year < 2008:
                     cnes = "TODOS"
@@ -717,38 +723,68 @@ class Conversions:
             dbf_file_path = path.join(dbf_dir, dbf_file_name)
             csv_file_path = path.join(csv_dir, csv_file_name)
     
-            # 1️⃣ Convert DBC → DBF
+            # =========================
+            # 1️⃣ DBC → DBF
+            # =========================
             result1 = subprocess.run(
                 [ProjPaths.BLAST_DBF_PATH, file, dbf_file_path],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
+                capture_output=True,
+                text=True
             )
     
             if result1.returncode != 0:
-                print(f"Erro convertendo DBC para DBF: {file}")
+                print(f"[WARN] BLAST_DBF failed: {file}")
+                print(result1.stderr)
+    
+            # Validate DBF
+            if not path.exists(dbf_file_path) or os.path.getsize(dbf_file_path) == 0:
+                print(f"[ERROR] DBF not created or empty: {file}")
                 return
     
-            # 2️⃣ Convert DBF → CSV
+            # =========================
+            # 2️⃣ DBF → CSV
+            # =========================
             result2 = subprocess.run(
                 [ProjPaths.DBF2CSV_PATH, dbf_file_path, csv_file_path, cnes, sistema],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
+                capture_output=True,
+                text=True
             )
     
             if result2.returncode != 0:
-                print(f"Erro convertendo DBF para CSV: {dbf_file_path}")
+                print(f"[WARN] DBF2CSV failed: {dbf_file_path}")
+                print(result2.stderr)
+    
+            # Validate CSV
+            if not path.exists(csv_file_path):
+                print(f"[ERROR] CSV not created: {dbf_file_path}")
                 return
     
-            # 3️⃣ DELETE DBF immediately (saves GBs)
-            if path.exists(dbf_file_path):
+            if os.path.getsize(csv_file_path) == 0:
+                print(f"[WARN] CSV empty (likely no matching CNES): {csv_file_path}")
+                return
+    
+            # Optional: check header sanity
+            with open(csv_file_path, 'r', encoding='latin1') as f:
+                first_line = f.readline().strip()
+                if not first_line:
+                    print(f"[ERROR] CSV has no header: {csv_file_path}")
+                    return
+    
+            # =========================
+            # 3️⃣ CLEANUP
+            # =========================
+            try:
                 os.remove(dbf_file_path)
+            except:
+                pass
     
-            # 4️⃣ DELETE original DBC immediately (VERY IMPORTANT)
-            if path.exists(file):
+            try:
                 os.remove(file)
-    
+            except:
+                pass
+
         except Exception as e:
-            print(f"Erro processando {file}: {e}")
+            print(f"[ERROR] Failed processing {file}: {e}")
 
     @staticmethod
     def unite_files(system: str):
