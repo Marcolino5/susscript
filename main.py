@@ -704,8 +704,8 @@ class Conversions:
             except:
                 pass
     
-            dbf_file_name = filename.lower().replace(".dbc", ".dbf")
-            csv_file_name = filename.lower().replace(".dbc", ".csv")
+            dbf_file_name = filename.replace(".dbc", ".dbf")
+            csv_file_name = filename.replace(".dbc", ".csv")
     
             csv_dir = PREFIX_CSV_DIR[prefix]
             dbf_dir = PREFIX_DBF_DIR[prefix]
