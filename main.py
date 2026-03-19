@@ -597,7 +597,7 @@ class Downloads:
                     # 🔥 BAIXA O ARQUIVO
                     with open(local_file_path, 'wb') as f:
                         ftp.retrbinary(f"RETR {file}", f.write)
-    
+                        print(f"file: {file}, f.write: {f.write}")
                     ftp.quit()
     
                     # 🔥 VALIDA TAMANHO
