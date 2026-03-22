@@ -19,6 +19,11 @@ SIH_RELEVANT_FIELDS = np.array(['SP_AA', 'SP_MM','SP_ATOPROF', 'SP_QTD_ATO', 'SP
 def br_money(value: float) -> str:
     return f"{value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
+def to_scalar(x):
+    if isinstance(x, pd.Series):
+        return x.sum()
+    return x
+
 # Class responsible for defining, sharing and creating the directories used in the program
 class ProjPaths:
     
@@ -1574,10 +1579,9 @@ class LatexBuilder:
                 tipo_display = p.get('TIPO_SISTEMA', '-')
                 
                 try:
-                    # Verifica qual deles existe no dicionário, se não tiver nenhum retorna 0
-                    qtd = int(p.get('PA_QTDAPR', p.get('SP_QTD_ATO', 0)))
-                    paid = float(p.get('PA_VALAPR', p.get('SP_VALATO', pd.Series(dtype=float))).sum())
-                    due = float(p.get('VALOR_DEVIDO_IVR', pd.Series(dtype=float)).sum()) - paid
+                    qtd = int(to_scalar(p.get('PA_QTDAPR', p.get('SP_QTD_ATO', 0))))
+                    paid = float(to_scalar(p.get('PA_VALAPR', p.get('SP_VALATO', 0.0))))
+                    due = float(to_scalar(p.get('VALOR_DEVIDO_IVR', 0.0))) - paid
                 except:
                     continue
                     
