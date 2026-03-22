@@ -1315,14 +1315,26 @@ class Processing:
         except Exception:
              df = pd.read_csv(file_path, encoding="latin1", sep=';', engine="python")
         df.columns = df.columns.str.strip()
+        
         if not expected.issubset(set(df.columns)):
             print("File does not match SIH schema:", file_path)
             return None
+
         df = df[SIH_RELEVANT_FIELDS]
+        df['VALOR_DEVIDO_IVR'] = df['SP_VALATO'] * 1.5
+        df['TIPO_SISTEMA'] = 'SIH'
         when = Date.from_sus_file_name(file_path)
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
         brute_sum = df["SP_VALATO"].sum()
-        return MonthInfo(when, 'IVR', 'SIH', brute_sum*1.5, brute_sum, rate)
+
+        colunas_detalhe = ['SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO', 'VALOR_DEVIDO_IVR']
+        procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
+
+        print(f"DEBUG PYTHON: Encontrei {len(procedimentos_lista)} procedimentos para o mês {when}")
+        if procedimentos_lista:
+            print(f"Exemplo do primeiro item: {procedimentos_lista[0]}")
+        
+        return MonthInfo(when, 'IVR', 'SIH', brute_sum*1.5, brute_sum, rate, procedimentos_lista)
     
     @staticmethod
     def month_SIH_TUNEP(file_path: str) -> MonthInfo:
@@ -1387,7 +1399,7 @@ class Processing:
             if str(m.when) not in months_info:
                 rate = InterestRate.complete_rate_split(m.when, ProjParams.END_INTEREST)
                 months_info[str(m.when)] = MonthInfo.empty(m.when, method, rate)
-            months_info[str(m.when)].add_got_exp('SIH', m.got, m.expected)
+            months_info[str(m.when)].add_got_exp('SIH', m.got, m.expected, m.procedimentos)
 
         lst = list(months_info.values())
         lst.sort(key=lambda x: x.when)
