@@ -1317,11 +1317,11 @@ class Processing:
             return None
 
         df = df[SIH_RELEVANT_FIELDS]
-        df['VALOR_DEVIDO_IVR'] = df['SP_VALATO'] * 1.5
-        df['TIPO_SISTEMA'] = 'SIH'
         when = Date.from_sus_file_name(file_path)
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
         brute_sum = df["SP_VALATO"].sum()
+        df['VALOR_DEVIDO_IVR'] = brute_sum * 1.5
+        df['TIPO_SISTEMA'] = 'SIH'
 
         colunas_detalhe = ['SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO', 'VALOR_DEVIDO_IVR']
         procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
@@ -1574,8 +1574,9 @@ class LatexBuilder:
                 tipo_display = p.get('TIPO_SISTEMA', '-')
                 
                 try:
+                    # Verifica qual deles existe no dicionário, se não tiver nenhum retorna 0
                     qtd = int(p.get('PA_QTDAPR', p.get('SP_QTD_ATO', 0)))
-                    paid = float(p.get('PA_VALAPR', p.get('SP_VALATO', 0.0)))
+                    paid = float(p.get('PA_VALAPR', p.get('SP_VALATO', pd.Series(dtype=float))).sum())
                     due = float(p.get('VALOR_DEVIDO_IVR', 0.0)) - paid
                 except:
                     continue
