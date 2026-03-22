@@ -1233,7 +1233,7 @@ class Processing:
     
         # Continuar processamento normalmente
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
-        df['VALOR_DEVIDO_IVR'] = df['PA_VALAPR'] * 1.5
+        df['VALOR_DEVIDO_IVR'] = df['PA_VALAPR'] * 0.5
         brute_sum = df["PA_VALAPR"].sum()
         expected_sum = df["VALOR_DEVIDO_IVR"].sum()
         colunas_detalhe = ['PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR', 'VALOR_DEVIDO_IVR']
@@ -1320,7 +1320,7 @@ class Processing:
         when = Date.from_sus_file_name(file_path)
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
         brute_sum = df["SP_VALATO"].sum()
-        df['VALOR_DEVIDO_IVR'] = brute_sum * 1.5
+        df['VALOR_DEVIDO_IVR'] = brute_sum * 0.5
         df['TIPO_SISTEMA'] = 'SIH'
 
         colunas_detalhe = ['SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO', 'VALOR_DEVIDO_IVR']
@@ -1576,8 +1576,8 @@ class LatexBuilder:
                 try:
                     # Verifica qual deles existe no dicionário, se não tiver nenhum retorna 0
                     qtd = int(p.get('PA_QTDAPR', p.get('SP_QTD_ATO', 0)))
-                    paid = float(p.get('PA_VALAPR', p.get('SP_VALATO', pd.Series(dtype=float))).sum())
-                    due = float(p.get('VALOR_DEVIDO_IVR', 0.0)) - paid
+                    paid = float(p.get('PA_VALAPR', p.get('SP_VALATO', 0.0)))
+                    due = float(p.get('VALOR_DEVIDO_IVR', 0.0))
                 except:
                     continue
                     
