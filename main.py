@@ -576,8 +576,7 @@ class Downloads:
     
         PREFIX_LOCATION = {
             'PA': ProjPaths.SIA_DOWNLOAD_DIR,
-            'SP': ProjPaths.SIH_DOWNLOAD_DIR,
-            'RD': ProjPaths.SIH_DOWNLOAD_DIR
+            'SP': ProjPaths.SIH_DOWNLOAD_DIR
         }
     
         for file in files:
@@ -645,7 +644,7 @@ class Downloads:
             def append_to_file(file: str):
                 file = file.split(' ')[-1]
 
-                if file[0:2] != search_prefix and not (sistema == 'SIH' and file[0:2] == 'RD'):
+                if file[0:2] != search_prefix:
                     return
 
                 if file[2:4] != estado:
@@ -698,20 +697,17 @@ class Conversions:
     
         PREFIX_SYSTEM = {
             'PA': 'SIA',
-            'SP': 'SIH',
-            'RD': 'SIH'
+            'SP': 'SIH'
         }
     
         PREFIX_CSV_DIR = {
             'PA': ProjPaths.SIA_CSVS_DIR,
-            'SP': ProjPaths.SIH_CSVS_DIR,
-            'RD': ProjPaths.SIH_CSVS_DIR
+            'SP': ProjPaths.SIH_CSVS_DIR
         }
     
         PREFIX_DBF_DIR = {
             'PA': ProjPaths.SIA_DBFS_DIR,
-            'SP': ProjPaths.SIH_DBFS_DIR,
-            'RD': ProjPaths.SIH_DBFS_DIR
+            'SP': ProjPaths.SIH_DBFS_DIR
         }
     
         try:
