@@ -1487,9 +1487,6 @@ class LatexBuilder:
                                             nome_fantasia=ProjParams.NOME_FANTASIA)
         
         result += template.METODOLOGIA
-
-        if (report.diff_now == 0):
-            raise Exception("Nothing to pay")
         
         result += template.CONCLUSAO.format(valor_total=br_money(report.diff_now))
 
