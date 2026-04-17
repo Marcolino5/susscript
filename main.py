@@ -1383,9 +1383,6 @@ class Processing:
     @staticmethod
     def months(sia_files: list[str], sih_files: list[str], method: str) -> list[MonthInfo]:
 
-        if (method == 'TUNEP' or method == 'BOTH'):
-            print(f'method {method} not implemented yet')
-            exit(1)
 
         FUNCTION_TABLE = {
             'IVR': [Processing.month_SIA_IVR, Processing.month_SIH_IVR],
