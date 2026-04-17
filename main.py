@@ -1334,15 +1334,37 @@ class Processing:
     
     @staticmethod
     def month_SIH_TUNEP(file_path: str) -> MonthInfo:
+
+        expected = set(SIH_RELEVANT_FIELDS)
+
+        if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
+            return None
+        
         try:
-            df = pd.read_csv(file_path, usecols=SIH_RELEVANT_FIELDS, dtype={'SP_ATOPROF': 'str', 'SP_QTD_ATO': 'int'}, encoding="latin1", sep=None, engine="python")
+            df = pd.read_csv(file_path, encoding="latin1", sep=None, engine="python")
         except Exception:
-            df = pd.read_csv(file_path, usecols=SIH_RELEVANT_FIELDS, dtype={'SP_ATOPROF': 'str', 'SP_QTD_ATO': 'int'}, encoding="latin1", sep=";", engine="python")
+             df = pd.read_csv(file_path, encoding="latin1", sep=';', engine="python")
+        df.columns = df.columns.str.strip()
+        
+        if not expected.issubset(set(df.columns)):
+            print("File does not match SIH schema:", file_path)
+            return None
+
+        df = df[SIH_RELEVANT_FIELDS]
         when = Date.from_sus_file_name(file_path)
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
-        res = df.apply(Processing.row_SIH_TUNEP, axis=1).sum()
-        got = df["SP_VALATO"].sum()
-        return MonthInfo(when, 'TUNEP', 'SIH', res, got, rate)
+        brute_sum = df["SP_VALATO"].sum()
+        df['VALOR_DEVIDO_IVR'] = df["SP_VALATO"] * 1.5
+        df['TIPO_SISTEMA'] = 'SIH'
+
+        colunas_detalhe = ['SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO', 'VALOR_DEVIDO_IVR']
+        procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
+
+        print(f"DEBUG PYTHON: Encontrei {len(procedimentos_lista)} procedimentos para o mês {when}")
+        if procedimentos_lista:
+            print(f"Exemplo do primeiro item: {procedimentos_lista[0]}")
+        
+        return MonthInfo(when, 'IVR', 'SIH', brute_sum*1.5, brute_sum, rate, procedimentos_lista)
 
 
     @staticmethod
