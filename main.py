@@ -422,6 +422,7 @@ class ProjParams:
         ProjParams.RAZAO_SOCIAL = sys.argv[10]
         ProjParams.NOME_FANTASIA = sys.argv[11]
         ProjParams.NUMERO_PROCESSO = sys.argv[12]
+        ProjParams.MODE = sys.argv[13]
 
         # Verifica se temos o 15º argumento (o CNPJ)
         if len(sys.argv) > 14:
