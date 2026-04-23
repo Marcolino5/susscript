@@ -1761,16 +1761,16 @@ def main():
 
         if (ProjParams.SYSTEM == 'SIA' or ProjParams.SYSTEM == 'BOTH'):
             get_files('SIA')
-        #if (ProjParams.SYSTEM == 'SIH' or ProjParams.SYSTEM == 'BOTH'):
-        #    get_files('SIH')
+        if (ProjParams.SYSTEM == 'SIH' or ProjParams.SYSTEM == 'BOTH'):
+            get_files('SIH')
 
         Conversions.convert_files()
 
         debug_disk("BEFORE UNITING/AFTER CONVERSION")
         if (ProjParams.SYSTEM == 'SIA' or ProjParams.SYSTEM == 'BOTH'):
             Conversions.unite_files('SIA')
-        #if (ProjParams.SYSTEM == 'SIH' or ProjParams.SYSTEM == 'BOTH'):
-        #    Conversions.unite_files('SIH')
+        if (ProjParams.SYSTEM == 'SIH' or ProjParams.SYSTEM == 'BOTH'):
+            Conversions.unite_files('SIH')
         debug_disk("AFTER UNITING")
 
         sih_files = [path.join(ProjPaths.SIH_CSVS_DIR, file) for file in os.listdir(ProjPaths.SIH_CSVS_DIR)]
