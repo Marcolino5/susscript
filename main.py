@@ -1193,57 +1193,35 @@ class Processing:
     @staticmethod
     def month_SIA_IVR(file_path: str) -> MonthInfo:
         when = Date.from_sus_file_name(file_path)
-        print(f"Processando mês: {when}")
-    
-        if not os.path.exists(file_path):
-            print(f"AVISO: arquivo não encontrado: {file_path}")
-            rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
-            return MonthInfo.empty(when, 'IVR', rate)
-    
+        expected = set(SIA_RELEVANT_FIELDS)
+
+        if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
+            return None
+        
         try:
-            if when.year < 2008:
-                # PROCESSAMENTO DE ARQUIVOS ANTIGOS
-                colunas_antigas = ['PA_DATREF', 'PA_CODPRO', 'PA_QTDAPR', 'PA_VALAPR', 'PA_CODUNI']
-                df = pd.read_csv(file_path, usecols=colunas_antigas, dtype=str)
-                df.rename(columns={'PA_DATREF': 'PA_CMP', 'PA_CODPRO': 'PA_PROC_ID'}, inplace=True)
-                df['PA_VALAPR'] = pd.to_numeric(df['PA_VALAPR'].str.strip(), errors='coerce').fillna(0)
-                df['PA_QTDAPR'] = pd.to_numeric(df['PA_QTDAPR'].str.strip(), errors='coerce').fillna(0)
-    
-                target_val = LegacyMatcher.get_expected_total('SIA', when, ProjParams.CNPJ)
-                legacy_code = LegacyMatcher.identify_legacy_code(df, target_val)
-                if legacy_code:
-                    df = df[df['PA_CODUNI'] == legacy_code]
-                    print(f"DEBUG: Filtrado {len(df)} linhas para o código antigo {legacy_code}")
-                else:
-                    df = pd.DataFrame(columns=df.columns)
-            else:
-                # PROCESSAMENTO DE ARQUIVOS RECENTES
-                df = pd.read_csv(file_path, usecols=SIA_RELEVANT_FIELDS, dtype=str)
-                df['PA_VALAPR'] = pd.to_numeric(df['PA_VALAPR'].str.strip(), errors='coerce').fillna(0)
-                df['PA_QTDAPR'] = pd.to_numeric(df['PA_QTDAPR'].str.strip(), errors='coerce').fillna(0)
-    
-        except Exception as e:
-            # Handle any CSV read or processing error gracefully
-            print(f"Erro no processamento do arquivo {file_path}: {e}")
-            df = pd.DataFrame(columns=['PA_CMP', 'PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR'])
-    
-        if df.empty:
-            rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
-            return MonthInfo.empty(when, 'IVR', rate)
-    
+            df = pd.read_csv(file_path, encoding="latin1", sep=None, engine="python")
+        except Exception:
+             df = pd.read_csv(file_path, encoding="latin1", sep=';', engine="python")
+        df.columns = df.columns.str.strip()
+        
+        if not expected.issubset(set(df.columns)):
+            print("File does not match SIA schema:", file_path)
+            return None
+
         # Continuar processamento normalmente
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
         df['VALOR_DEVIDO_IVR'] = df['PA_VALAPR'] * 1.5
         brute_sum = df["PA_VALAPR"].sum()
         expected_sum = df["VALOR_DEVIDO_IVR"].sum()
-        colunas_detalhe = ['PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR', 'VALOR_DEVIDO_IVR']
         df['TIPO_SISTEMA'] = 'SIA'
+
+        colunas_detalhe = ['PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR', 'VALOR_DEVIDO_IVR']
         procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
-    
+
         print(f"DEBUG PYTHON: Encontrei {len(procedimentos_lista)} procedimentos para o mês {when}")
         if procedimentos_lista:
             print(f"Exemplo do primeiro item: {procedimentos_lista[0]}")
-    
+        
         return MonthInfo(when, 'IVR', 'SIA', expected_sum, brute_sum, rate, procedimentos_lista)
 
     @staticmethod
