@@ -379,6 +379,7 @@ class ProjParams:
     NOME_FANTASIA: str = "Nome Fantasia"
     NUMERO_PROCESSO: str = "Número Processo"
     CNPJ: str = ""
+    MODE: str = "DEFAULT"
 
     @staticmethod
     def init():
@@ -397,6 +398,7 @@ class ProjParams:
             ProjParams.RAZAO_SOCIAL = sys.argv[11]
             ProjParams.NOME_FANTASIA = sys.argv[12]
             ProjParams.NUMERO_PROCESSO = sys.argv[13]
+            ProjParams.MODE = sys.argv[14]
             return
         
         if sys.argv[1] == 'raw':
@@ -421,9 +423,9 @@ class ProjParams:
         ProjParams.NOME_FANTASIA = sys.argv[11]
         ProjParams.NUMERO_PROCESSO = sys.argv[12]
 
-        # Verifica se temos o 13º argumento (o CNPJ)
-        if len(sys.argv) > 13:
-            ProjParams.CNPJ = sys.argv[13]
+        # Verifica se temos o 15º argumento (o CNPJ)
+        if len(sys.argv) > 14:
+            ProjParams.CNPJ = sys.argv[14]
             print(f"DEBUG: CNPJ CAPTURADO COM SUCESSO: {ProjParams.CNPJ}")
 
     @staticmethod
@@ -471,6 +473,7 @@ class ProjParams:
         print('cidade: ', ProjParams.CIDADE)
         print('método: ', ProjParams.METHOD)
         print('data citação', ProjParams.DATA_CIACAO)
+        print('modo', ProjParams.MODE)
         print('CNPJ:', ProjParams.CNPJ)
 
 
@@ -1505,9 +1508,19 @@ class LatexBuilder:
     @staticmethod
     def build_month_latex_table(months: list[MonthInfo], template: ModuleType) -> str:
         table_body = template.MONTH_HEADER
-        for m in months:
-            table_body += f"{m.when} & {br_money(m.got)} & {br_money(m.debt_then())} & {(m.rates[0]*100)-100:.4f}\\% & {(m.rates[1]*100)-100:.4f}\\% & {br_money(m.debt_now())}"
-            table_body += '\\\\ \\hline'
+
+        # Padrão; Faz dados com correção monetária
+        if (ProjParams.MODE == "DEFAULT"):
+            for m in months:
+                table_body += f"{m.when} & {br_money(m.got)} & {br_money(m.debt_then())} & {(m.rates[0]*100)-100:.4f}\\% & {(m.rates[1]*100)-100:.4f}\\% & {br_money(m.debt_now())}"
+                table_body += '\\\\ \\hline'
+
+        # Mostra dados brutos; Só soma IVR padrão
+        if (ProjParams.MODE == "BRUTE"):
+            for m in months:
+                table_body += f"{m.when} & {br_money(m.got)} & {br_money(m.debt_then())} {br_money(m.got) + br_money(m.debt_then())}"
+                table_body += '\\\\ \\hline'
+        
         return table_body + template.MONTH_FOOTER
 
 
