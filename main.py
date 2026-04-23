@@ -1781,16 +1781,16 @@ def main():
         Tunep.load_tunep()
         LegacyMatcher.load_references()
 
-        if (ProjParams.SYSTEM == 'SIA' or ProjParams.SYSTEM == 'BOTH'):
-            get_files('SIA')
+        #if (ProjParams.SYSTEM == 'SIA' or ProjParams.SYSTEM == 'BOTH'):
+        #    get_files('SIA')
         if (ProjParams.SYSTEM == 'SIH' or ProjParams.SYSTEM == 'BOTH'):
             get_files('SIH')
 
         Conversions.convert_files()
 
         debug_disk("BEFORE UNITING/AFTER CONVERSION")
-        if (ProjParams.SYSTEM == 'SIA' or ProjParams.SYSTEM == 'BOTH'):
-            Conversions.unite_files('SIA')
+        #if (ProjParams.SYSTEM == 'SIA' or ProjParams.SYSTEM == 'BOTH'):
+         #   Conversions.unite_files('SIA')
         if (ProjParams.SYSTEM == 'SIH' or ProjParams.SYSTEM == 'BOTH'):
             Conversions.unite_files('SIH')
         debug_disk("AFTER UNITING")
