@@ -83,7 +83,7 @@ MONTH_HEADER = '''
 	\\textbf{Mês do Crédito} &
 	\\textbf{Valor original pago pelo SUS (R\$)} &
 	\\textbf{Diferença devida e não paga (R\$)} &
-	\\textbf{Valor total devido (R\$)}
+	\\textbf{Valor total (R\$)}
 	\\endhead \\hline
 '''
 
