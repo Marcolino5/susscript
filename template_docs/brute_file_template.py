@@ -50,11 +50,11 @@ Com base nas informações extraídas do DATASUS de procedimentos hospitalares e
 '''
 
 TOTAL_HEADER = '''
-\\section{Resumo Total}
+\\section{Resumo Total (sem atualização)}
 \\begin{longtable}[c]{|p{2.6cm}|p{2.6cm}|p{2.6cm}|p{2.3cm}|}
 	\\caption{Resumo total} \\\\ \\hline
 	\\textbf{Diferença devida e não paga (R\$)} &
-	\\textbf{Valor total devido sem atualização (R\$)}
+	\\textbf{Valor total devido (R\$)}
 	\\endhead \\hline
 '''
 
@@ -63,12 +63,12 @@ TOTAL_FOOTER = '''
 '''
 
 YEAR_HEADER = '''
-\\section{Resumo Anual}
+\\section{Resumo Anual (sem atualização)}
 \\begin{longtable}[c]{|p{1.7cm}|p{2.6cm}|p{2.6cm}|p{2.3cm}|}
 	\\caption{Resumo ano a ano} \\\\ \\hline
 	\\textbf{Ano} &
 	\\textbf{Diferença devida e não paga (R\$)} &
-	\\textbf{Valor total devido sem atualização (R\$)}
+	\\textbf{Valor total devido (R\$)}
 	\\endhead \\hline
 '''
 
@@ -77,13 +77,13 @@ YEAR_FOOTER = '''
 '''
 
 MONTH_HEADER = '''
-\\section{Resumo mensal}
+\\section{Resumo mensal (sem atualização)}
 \\begin{longtable}[c]{|p{1.7cm}|p{2.6cm}|p{2.6cm}|p{2.3cm}|p{2.3cm}|p{2.3cm}|c|}
 	\\caption{Resumo mês a mês} \\\\ \\hline
 	\\textbf{Mês do Crédito} &
 	\\textbf{Valor original pago pelo SUS (R\$)} &
-	\\textbf{Diferença devida e não paga (R\$)}
-	\\textbf{Valor total devido sem atualização (R\$)}
+	\\textbf{Diferença devida e não paga (R\$)} &
+	\\textbf{Valor total devido (R\$)}
 	\\endhead \\hline
 '''
 
