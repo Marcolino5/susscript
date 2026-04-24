@@ -54,7 +54,7 @@ TOTAL_HEADER = '''
 \\begin{longtable}[c]{|p{2.6cm}|p{2.6cm}|p{2.6cm}|p{2.3cm}|}
 	\\caption{Resumo total} \\\\ \\hline
 	\\textbf{Diferença devida e não paga (R\$)} &
-	\\textbf{Valor total devido (R\$)}
+	\\textbf{Valor total (R\$)}
 	\\endhead \\hline
 '''
 
@@ -68,7 +68,7 @@ YEAR_HEADER = '''
 	\\caption{Resumo ano a ano} \\\\ \\hline
 	\\textbf{Ano} &
 	\\textbf{Diferença devida e não paga (R\$)} &
-	\\textbf{Valor total devido (R\$)}
+	\\textbf{Valor total (R\$)}
 	\\endhead \\hline
 '''
 
