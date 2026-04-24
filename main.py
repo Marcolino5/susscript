@@ -1530,16 +1530,24 @@ class LatexBuilder:
     @staticmethod
     def build_year_latex_table(years: list[YearInfo], template: ModuleType) -> str:
         table_body = template.YEAR_HEADER
-        for y in years:
-            table_body += f"{y.when} & {br_money(y.diff_then)} & {br_money(y.val_correcao)} & {br_money(y.diff_now)}"
-            table_body += '\\\\ \\hline'
+        if (ProjParams.MODE == "DEFAULT"):
+            for y in years:
+                table_body += f"{y.when} & {br_money(y.diff_then)} & {br_money(y.val_correcao)} & {br_money(y.diff_now)}"
+                table_body += '\\\\ \\hline'
+        if (ProjParams.MODE == "BRUTE"):
+            for y in years:
+                table_body += f"{y.when} & {br_money(y.diff_then)} & {br_money(y.diff_then * 3)}"
+                table_body += '\\\\ \\hline'
         return table_body + template.YEAR_FOOTER
 
 
     @staticmethod
     def build_total_latex_table(report: TotalInfo, template: ModuleType) -> str:
         table_body = template.TOTAL_HEADER
-        table_body += f"{br_money(report.diff_then)} & {br_money(report.val_correcao)} & {br_money(report.diff_now)}"
+        if (ProjParams.MODE == "DEFAULT"):
+            table_body += f"{br_money(report.diff_then)} & {br_money(report.val_correcao)} & {br_money(report.diff_now)}"
+        if (ProjParams.MODE == "BRUTE"):
+            table_body += f"{br_money(report.diff_then)} & {br_money(report.diff_then * 3)}"
         table_body += '\\\\ \\hline'
         return table_body + template.TOTAL_FOOTER
     
