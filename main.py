@@ -6,7 +6,7 @@ from types import ModuleType
 import pandas as pd
 import shutil
 from tables.interest_rate_before_01_2022 import INTEREST_BEFORE_01_2022
-from template_docs import ivr_file_template, tunep_file_template
+from template_docs import ivr_file_template, tunep_file_template, brute_file_template
 import numpy as np
 import datetime
 import sys
@@ -1474,8 +1474,10 @@ class LatexBuilder:
             'TUNEP': tunep_file_template,
             'BOTH': tunep_file_template,
             'RAW': tunep_file_template,
+            'BRUTE': brute_file_template
         }
-
+        
+        if  (ProjParams.MODE == "BRUTE"): method = 'BRUTE'
         template = METHOD_TEMPLATE[method]
 
         result = template.FILE_HEADER
@@ -1519,7 +1521,7 @@ class LatexBuilder:
         # Mostra dados brutos; Só soma IVR padrão
         if (ProjParams.MODE == "BRUTE"):
             for m in months:
-                table_body += f"{m.when} & {br_money(m.got)} & {br_money(m.debt_then())} {br_money(m.got) + br_money(m.debt_then())}"
+                table_body += f"{m.when} & {br_money(m.got)} & {br_money(m.debt_then())} & {br_money(m.got + m.debt_then())}"
                 table_body += '\\\\ \\hline'
         
         return table_body + template.MONTH_FOOTER
