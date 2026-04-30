@@ -1591,7 +1591,10 @@ class LatexBuilder:
                     qtd = int((p.get('PA_QTDAPR', p.get('SP_QTD_ATO', 0))))
                     paid = float((p.get('PA_VALAPR', p.get('SP_VALATO', 0.0))))
                     due = float((p.get('VALOR_DEVIDO_IVR', 0.0))) - paid
-                    source = str(p.get("SOURCE_FILE", ""))
+
+                    raw_source = p.get("SOURCE_FILE", "")
+                    source = os.path.basename(raw_source) if raw_source else ""
+                    
                 except:
                     continue
                     
@@ -1609,18 +1612,21 @@ class LatexBuilder:
                         "qtd": 0,
                         "paid": 0.0,
                         "due": 0.0,
-                        "source": "",
+                        "source": set(),
                     }
         
                 aggregated[key]["qtd"] += qtd
                 aggregated[key]["paid"] += paid
                 aggregated[key]["due"] += due
-                aggregated[key]["source"] = source
+                aggregated[key]["source"].add(source)
 
         for data in aggregated.values():
         
             descricao = Tunep.get_description(data["code"], data["tipo"])
             descricao = descricao.replace('&', '\\&').replace('%', '\\%').replace('_', '\\_')
+
+            sources_str = ", ".join(sorted(data["source"]))
+            sources_str = sources_str.replace('_', '\\_')
         
             latex += (
                 f"{{\\centering {data['month']}}} & "
@@ -1629,7 +1635,7 @@ class LatexBuilder:
                 f"{{\\centering {data['qtd']}}} & "
                 f"{{\\raggedleft {br_money(data['paid'])}}} & "
                 f"{{\\raggedleft {br_money(data['due'])}}} & "
-                f"{{\\raggedleft {data['source']}}} \\\\ \\hline \n"
+                f"{{\\raggedleft \\scriptsize {sources_str}}} \\\\ \\hline \n"
             )
         
             total_linhas_processadas += 1
