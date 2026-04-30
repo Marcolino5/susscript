@@ -13,8 +13,8 @@ import sys
 import os
 import time
 
-SIA_RELEVANT_FIELDS = np.array(['PA_CMP', 'PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR', 'SOURCE_FILE'])
-SIH_RELEVANT_FIELDS = np.array(['SP_AA', 'SP_MM','SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO', 'SOURCE_FILE'])
+SIA_RELEVANT_FIELDS = np.array(['PA_CMP', 'PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR'])
+SIH_RELEVANT_FIELDS = np.array(['SP_AA', 'SP_MM','SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO'])
 
 def br_money(value: float) -> str:
     return f"{value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
@@ -1212,9 +1212,10 @@ class Processing:
         brute_sum = df["PA_VALAPR"].sum()
         expected_sum = df["VALOR_DEVIDO_IVR"].sum()
         df['TIPO_SISTEMA'] = 'SIA'
+        df['SOURCE_FILE'] = file_path
 
-        colunas_detalhe = ['PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR', 'VALOR_DEVIDO_IVR', 'SOURCE_FILE']
-        procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
+        colunas_detalhe = ['PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR', 'VALOR_DEVIDO_IVR']
+        procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA'] + ['SOURCE_FILE']].to_dict('records')
 
         print(f"DEBUG PYTHON: Encontrei {len(procedimentos_lista)} procedimentos para o mês {when}")
         if procedimentos_lista:
