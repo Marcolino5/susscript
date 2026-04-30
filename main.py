@@ -329,7 +329,8 @@ class Date:
 
     @staticmethod
     def from_string(date_str: str):
-            month, year = date_str.split('-')
+            if "/" in date_str: month, year = date_str.split('/')
+            else: month, year = date_str.split('-')
             return Date(int(month), int(year))
 
     @staticmethod
