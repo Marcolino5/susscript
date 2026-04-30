@@ -1299,9 +1299,10 @@ class Processing:
         brute_sum = df["SP_VALATO"].sum()
         df['VALOR_DEVIDO_IVR'] = df["SP_VALATO"] * 1.5
         df['TIPO_SISTEMA'] = 'SIH'
+        df['SOURCE_FILE'] = file_path
 
-        colunas_detalhe = ['SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO', 'VALOR_DEVIDO_IVR', 'SOURCE_FILE']
-        procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
+        colunas_detalhe = ['SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO', 'VALOR_DEVIDO_IVR']
+        procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA'] + ['SOURCE PATH']].to_dict('records')
 
         print(f"DEBUG PYTHON: Encontrei {len(procedimentos_lista)} procedimentos para o mês {when}")
         if procedimentos_lista:
