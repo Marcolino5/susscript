@@ -1302,7 +1302,7 @@ class Processing:
         df['SOURCE_FILE'] = file_path
 
         colunas_detalhe = ['SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO', 'VALOR_DEVIDO_IVR']
-        procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA'] + ['SOURCE PATH']].to_dict('records')
+        procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA'] + ['SOURCE_FILE']].to_dict('records')
 
         print(f"DEBUG PYTHON: Encontrei {len(procedimentos_lista)} procedimentos para o mês {when}")
         if procedimentos_lista:
