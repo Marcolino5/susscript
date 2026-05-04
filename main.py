@@ -1620,6 +1620,8 @@ class LatexBuilder:
             descricao = Tunep.get_description(data["code"], data["tipo"])
             descricao = descricao.replace('&', '\\&').replace('%', '\\%').replace('_', '\\_')
 
+            sources_str = "teste"
+
         
             latex += (
                 f"{{\\centering {data['month']}}} & "
