@@ -595,13 +595,17 @@ class Downloads:
                     ftp = FTP("ftp.datasus.gov.br")
                     ftp.login()
     
+                    # 🔥 PEGA TAMANHO REMOTO
                     remote_size = ftp.size(file)
     
+                    # 🔥 BAIXA O ARQUIVO
                     with open(local_file_path, 'wb') as f:
                         ftp.retrbinary(f"RETR {file}", f.write)
                     ftp.quit()
     
+                    # 🔥 VALIDA TAMANHO
                     local_size = os.path.getsize(local_file_path)
+    
     
                     if remote_size is not None and local_size != remote_size:
                         print(f"[WARN] Size mismatch (tentativa {attempt+1}): {file_name}")
@@ -738,6 +742,7 @@ class Conversions:
             dbf_file_path = path.join(dbf_dir, dbf_file_name)
             csv_file_path = path.join(csv_dir, csv_file_name)
     
+            # 1️⃣ Convert DBC → DBF
             result1 = subprocess.run(
                 [ProjPaths.BLAST_DBF_PATH, file, dbf_file_path],
                 stdout=subprocess.DEVNULL,
@@ -754,6 +759,7 @@ class Conversions:
                 print(f"Erro convertendo DBC para DBF: {file}")
                 return
     
+            # 2️⃣ Convert DBF → CSV
             result2 = subprocess.run(
                 [ProjPaths.DBF2CSV_PATH, dbf_file_path, csv_file_path, cnes, sistema],
                 stdout=subprocess.DEVNULL,
@@ -764,9 +770,11 @@ class Conversions:
                 print(f"Erro convertendo DBF para CSV: {dbf_file_path}")
                 return
     
+            # 3️⃣ DELETE DBF immediately (saves GBs)
             if path.exists(dbf_file_path):
                 os.remove(dbf_file_path)
     
+            # 4️⃣ DELETE original DBC immediately (VERY IMPORTANT)
             if path.exists(file):
                 os.remove(file)
     
@@ -827,8 +835,7 @@ class Conversions:
     
             try:
                 df.columns = [c.strip().upper() for c in df.columns]
-                df['SOURCE_FILE'] = os.path.basename(file)
-                
+    
                 df.to_csv(
                     output_path,
                     mode='w' if first_write else 'a',
@@ -1212,10 +1219,9 @@ class Processing:
         brute_sum = df["PA_VALAPR"].sum()
         expected_sum = df["VALOR_DEVIDO_IVR"].sum()
         df['TIPO_SISTEMA'] = 'SIA'
-        df['SOURCE_FILE'] = file_path
 
         colunas_detalhe = ['PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR', 'VALOR_DEVIDO_IVR']
-        procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA'] + ['SOURCE_FILE']].to_dict('records')
+        procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
 
         print(f"DEBUG PYTHON: Encontrei {len(procedimentos_lista)} procedimentos para o mês {when}")
         if procedimentos_lista:
@@ -1299,10 +1305,9 @@ class Processing:
         brute_sum = df["SP_VALATO"].sum()
         df['VALOR_DEVIDO_IVR'] = df["SP_VALATO"] * 1.5
         df['TIPO_SISTEMA'] = 'SIH'
-        df['SOURCE_FILE'] = file_path
 
         colunas_detalhe = ['SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO', 'VALOR_DEVIDO_IVR']
-        procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA'] + ['SOURCE_FILE']].to_dict('records')
+        procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
 
         print(f"DEBUG PYTHON: Encontrei {len(procedimentos_lista)} procedimentos para o mês {when}")
         if procedimentos_lista:
@@ -1561,8 +1566,7 @@ class LatexBuilder:
         \textbf{\centering Descrição} & 
         \textbf{\centering Qtd} & 
         \textbf{\centering Pago (R\$)} & 
-        \textbf{\centering Devido (R\$)} &
-        \textbf{\centering Fonte} \\ \hline
+        \textbf{\centering Devido (R\$)} \\ \hline
         \endfirsthead
 
         \hline
@@ -1577,6 +1581,7 @@ class LatexBuilder:
         
         total_linhas_processadas = 0
 
+        # 🔹 First pass: aggregate procedures
         aggregated = {}  # (month, code) -> accumulator dict
         
         for m in months:
@@ -1591,7 +1596,6 @@ class LatexBuilder:
                     qtd = int((p.get('PA_QTDAPR', p.get('SP_QTD_ATO', 0))))
                     paid = float((p.get('PA_VALAPR', p.get('SP_VALATO', 0.0))))
                     due = float((p.get('VALOR_DEVIDO_IVR', 0.0))) - paid
-                    
                 except:
                     continue
                     
@@ -1615,13 +1619,12 @@ class LatexBuilder:
                 aggregated[key]["paid"] += paid
                 aggregated[key]["due"] += due
 
+
+        # 🔹 Second pass: generate LaTeX from grouped data
         for data in aggregated.values():
         
             descricao = Tunep.get_description(data["code"], data["tipo"])
             descricao = descricao.replace('&', '\\&').replace('%', '\\%').replace('_', '\\_')
-
-            sources_str = "teste"
-
         
             latex += (
                 f"{{\\centering {data['month']}}} & "
@@ -1629,8 +1632,7 @@ class LatexBuilder:
                 f"{{\\raggedright \\scriptsize {descricao}}} & "
                 f"{{\\centering {data['qtd']}}} & "
                 f"{{\\raggedleft {br_money(data['paid'])}}} & "
-                f"{{\\raggedleft {br_money(data['due'])}}} & "
-                f"{{\\raggedleft \\scriptsize {sources_str}}} \\\\ \\hline \n"
+                f"{{\\raggedleft {br_money(data['due'])}}} \\\\ \\hline \n"
             )
         
             total_linhas_processadas += 1
