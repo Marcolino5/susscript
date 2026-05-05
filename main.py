@@ -1811,4 +1811,5 @@ def main():
     LatexBuilder.build_latex_file(months, years, total, ProjParams.METHOD)
     PdfBuilder.write_pdf(path.join(ProjPaths.RESULTS_DIR, 'laudo.pdf'))
 
-main()
+if __name__ == "__main__":
+    main()
