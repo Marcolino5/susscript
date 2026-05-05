@@ -1575,7 +1575,8 @@ class LatexBuilder:
         \textbf{\centering Descrição} & 
         \textbf{\centering Qtd} & 
         \textbf{\centering Pago (R\$)} & 
-        \textbf{\centering Devido (R\$)} \\ \hline
+        \textbf{\centering Devido (R\$)} &
+        \textbf{\centering Fonte}\\ \hline
         \endhead
         """
         
@@ -1810,5 +1811,6 @@ def main():
     LatexBuilder.build_latex_file(months, years, total, ProjParams.METHOD)
     PdfBuilder.write_pdf(path.join(ProjPaths.RESULTS_DIR, 'laudo.pdf'))
 
+# Garantia de que outra thread não vai rodar a main fora a inicial
 if __name__ == "__main__":
     main()
