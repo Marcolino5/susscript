@@ -1626,7 +1626,7 @@ class LatexBuilder:
         
             descricao = Tunep.get_description(data["code"], data["tipo"])
             descricao = descricao.replace('&', '\\&').replace('%', '\\%').replace('_', '\\_')
-            fonte = "FONTE"
+            source = "FONTE"
             
             latex += (
                 f"{{\\centering {data['month']}}} & "
@@ -1635,7 +1635,7 @@ class LatexBuilder:
                 f"{{\\centering {data['qtd']}}} & "
                 f"{{\\raggedleft {br_money(data['paid'])}}} & "
                 f"{{\\raggedleft {br_money(data['due'])}}} & "
-                f"{{\\raggedleft {fonte}}} & " \\\\ \\hline \n"
+                f"{{\\raggedleft {source}}} \\\\ \\hline \n"
             )
         
             total_linhas_processadas += 1
