@@ -1581,7 +1581,7 @@ class LatexBuilder:
         
         total_linhas_processadas = 0
 
-        # First pass: aggregate procedures
+        # 🔹 First pass: aggregate procedures
         aggregated = {}  # (month, code) -> accumulator dict
         
         for m in months:
@@ -1620,12 +1620,12 @@ class LatexBuilder:
                 aggregated[key]["due"] += due
 
 
-        # Second pass: generate LaTeX from grouped data
+        # 🔹 Second pass: generate LaTeX from grouped data
         for data in aggregated.values():
         
             descricao = Tunep.get_description(data["code"], data["tipo"])
             descricao = descricao.replace('&', '\\&').replace('%', '\\%').replace('_', '\\_')
-            
+        
             latex += (
                 f"{{\\centering {data['month']}}} & "
                 f"{{\\centering {data['code']}}} & "
