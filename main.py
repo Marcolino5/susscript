@@ -1575,13 +1575,14 @@ class LatexBuilder:
         \textbf{\centering Descrição} & 
         \textbf{\centering Qtd} & 
         \textbf{\centering Pago (R\$)} & 
-        \textbf{\centering Devido (R\$)} \\ \hline
+        \textbf{\centering Devido (R\$)} &
+        \textbf{\centering Fonte} \\ \hline
         \endhead
         """
         
         total_linhas_processadas = 0
 
-        # 🔹 First pass: aggregate procedures
+        # First pass: aggregate procedures
         aggregated = {}  # (month, code) -> accumulator dict
         
         for m in months:
@@ -1620,19 +1621,21 @@ class LatexBuilder:
                 aggregated[key]["due"] += due
 
 
-        # 🔹 Second pass: generate LaTeX from grouped data
+        # Second pass: generate LaTeX from grouped data
         for data in aggregated.values():
         
             descricao = Tunep.get_description(data["code"], data["tipo"])
             descricao = descricao.replace('&', '\\&').replace('%', '\\%').replace('_', '\\_')
-        
+            fonte = "FONTE"
+            
             latex += (
                 f"{{\\centering {data['month']}}} & "
                 f"{{\\centering {data['code']}}} & "
                 f"{{\\raggedright \\scriptsize {descricao}}} & "
                 f"{{\\centering {data['qtd']}}} & "
                 f"{{\\raggedleft {br_money(data['paid'])}}} & "
-                f"{{\\raggedleft {br_money(data['due'])}}} \\\\ \\hline \n"
+                f"{{\\raggedleft {br_money(data['due'])}}} & "
+                f"{{\\raggedleft {fonte}}} & " \\\\ \\hline \n"
             )
         
             total_linhas_processadas += 1
