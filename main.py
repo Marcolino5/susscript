@@ -312,7 +312,7 @@ class ProjPaths:
         print('download sih dir: ', ProjPaths.SIH_DOWNLOAD_DIR)
 
 class ProjConfigs:
-    N_OF_THREADS = 8
+    N_OF_THREADS = 1
 
 
 class Date:
