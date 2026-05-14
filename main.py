@@ -1569,7 +1569,8 @@ class LatexBuilder:
         \textbf{\centering Descrição} & 
         \textbf{\centering Qtd} & 
         \textbf{\centering Pago (R\$)} &
-        \textbf{\centering Devido (R\$)} \\ \hline
+        \textbf{\centering Devido (R\$)} &
+        \textbf{\centering Fonte} \\ \hline
         \endfirsthead
 
         \hline
@@ -1578,7 +1579,8 @@ class LatexBuilder:
         \textbf{\centering Descrição} & 
         \textbf{\centering Qtd} & 
         \textbf{\centering Pago (R\$)} & 
-        \textbf{\centering Devido (R\$)} \\ \hline
+        \textbf{\centering Devido (R\$)} &
+        \textbf{\centering Fonte} \\ \hline
         \endhead
         """
         
@@ -1635,7 +1637,8 @@ class LatexBuilder:
                 f"{{\\raggedright \\scriptsize {descricao}}} & "
                 f"{{\\centering {data['qtd']}}} & "
                 f"{{\\raggedleft {br_money(data['paid'])}}} & "
-                f"{{\\raggedleft {br_money(data['due'])}}} \\\\ \\hline \n"
+                f"{{\\raggedleft {br_money(data['due'])}}} & "
+                f"{{\\raggedleft teste}} \\\\ \\hline \n"
             )
         
             total_linhas_processadas += 1
