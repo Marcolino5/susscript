@@ -563,18 +563,7 @@ class Downloads:
 
     @staticmethod
     def download(files: list[str]):
-        with Pool(processes=ProjConfigs.N_OF_THREADS) as p:
-            file_sets: list[list[str]] = [[]]
-            f_index = 0
-            while (f_index < len(files)):
-                if (len(file_sets[-1]) < 6):
-                    file_sets[-1].append(files[f_index])
-                    f_index+=1
-                else:
-                    file_sets.append([files[f_index]])
-                    f_index+=1
-
-            p.map(Downloads.download_many, file_sets)
+        Downloads.download_many(files)
 
     @staticmethod
     def download_many(files: list[str]):
