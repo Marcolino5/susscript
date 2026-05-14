@@ -329,7 +329,8 @@ class Date:
 
     @staticmethod
     def from_string(date_str: str):
-            month, year = date_str.split('-')
+            if "/" in date_str: month, year = date_str.split('/')
+            else: month, year = date_str.split('-')
             return Date(int(month), int(year))
 
     @staticmethod
@@ -1564,8 +1565,7 @@ class LatexBuilder:
         \textbf{\centering Cód.} & 
         \textbf{\centering Descrição} & 
         \textbf{\centering Qtd} & 
-        \textbf{\centering Pago (R\$)} & 
-        \textbf{\centering Devido (R\$)} \\ \hline
+        \textbf{\centering Pago (R\$)} \\ \hline
         \endfirsthead
 
         \hline
@@ -1809,5 +1809,5 @@ def main():
     LatexBuilder.build_latex_file(months, years, total, ProjParams.METHOD)
     PdfBuilder.write_pdf(path.join(ProjPaths.RESULTS_DIR, 'laudo.pdf'))
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
