@@ -312,7 +312,7 @@ class ProjPaths:
         print('download sih dir: ', ProjPaths.SIH_DOWNLOAD_DIR)
 
 class ProjConfigs:
-    N_OF_THREADS = 1
+    N_OF_THREADS = 8
 
 
 class Date:
@@ -329,8 +329,7 @@ class Date:
 
     @staticmethod
     def from_string(date_str: str):
-            if "/" in date_str: month, year = date_str.split('/')
-            else: month, year = date_str.split('-')
+            month, year = date_str.split('-')
             return Date(int(month), int(year))
 
     @staticmethod
@@ -1575,8 +1574,7 @@ class LatexBuilder:
         \textbf{\centering Descrição} & 
         \textbf{\centering Qtd} & 
         \textbf{\centering Pago (R\$)} & 
-        \textbf{\centering Devido (R\$)} &
-        \textbf{\centering Fonte}\\ \hline
+        \textbf{\centering Devido (R\$)} \\ \hline
         \endhead
         """
         
@@ -1811,5 +1809,4 @@ def main():
     LatexBuilder.build_latex_file(months, years, total, ProjParams.METHOD)
     PdfBuilder.write_pdf(path.join(ProjPaths.RESULTS_DIR, 'laudo.pdf'))
 
-if __name__ == "__main__":
-    main()
+main()
