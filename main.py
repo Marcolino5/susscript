@@ -564,7 +564,19 @@ class Downloads:
 
     @staticmethod
     def download(files: list[str]):
-        Downloads.download_many(files)
+    
+        n_workers = ProjConfigs.N_OF_THREADS
+    
+        # divide arquivos igualmente entre as threads
+        chunk_size = max(1, math.ceil(len(files) / n_workers))
+    
+        chunks = [
+            files[i:i + chunk_size]
+            for i in range(0, len(files), chunk_size)
+        ]
+    
+        with ThreadPoolExecutor(max_workers=n_workers) as executor:
+            list(executor.map(Downloads.download_many, chunks))
 
     @staticmethod
     def download_many(files: list[str]):
