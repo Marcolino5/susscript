@@ -1806,8 +1806,8 @@ def main():
         ProjPaths.create_paths()
     years = Processing.year_results(months)
     total = Processing.total_result(months)
-    print(months)
-    raise ValueError(f"months: {months}")
+
+    raise Exception("SIH DIR:", ProjPaths.SIH_DOWNLOAD_DIR)
 
     LatexBuilder.build_latex_file(months, years, total, ProjParams.METHOD)
     PdfBuilder.write_pdf(path.join(ProjPaths.RESULTS_DIR, 'laudo.pdf'))
