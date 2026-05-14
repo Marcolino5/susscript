@@ -1797,8 +1797,6 @@ def main():
     years = Processing.year_results(months)
     total = Processing.total_result(months)
 
-    raise Exception("N OF THREADS:", ProjConfigs.N_OF_THREADS)
-
     LatexBuilder.build_latex_file(months, years, total, ProjParams.METHOD)
     PdfBuilder.write_pdf(path.join(ProjPaths.RESULTS_DIR, 'laudo.pdf'))
 
