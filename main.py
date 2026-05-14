@@ -1,4 +1,5 @@
 from multiprocessing import Pool
+from concurrent.futures import ThreadPoolExecutor
 from ftplib import FTP
 import subprocess
 import os.path as path
@@ -683,8 +684,8 @@ class Conversions:
             print("No DBC files to convert.")
             return
     
-        with Pool(processes=ProjConfigs.N_OF_THREADS) as p:
-            p.map(Conversions.convert_file_to_csv, path_to_files)
+        with ThreadPoolExecutor(max_workers=ProjConfigs.N_OF_THREADS) as executor:
+            list(executor.map(Conversions.convert_file_to_csv, path_to_files))
 
     @staticmethod
     def convert_file_to_csv(file: str):
@@ -1796,7 +1797,7 @@ def main():
     years = Processing.year_results(months)
     total = Processing.total_result(months)
 
-    raise Exception("SIH DIR:", ProjPaths.SIH_DOWNLOAD_DIR)
+    raise Exception("N OF THREADS:", ProjConfigs.N_OF_THREADS)
 
     LatexBuilder.build_latex_file(months, years, total, ProjParams.METHOD)
     PdfBuilder.write_pdf(path.join(ProjPaths.RESULTS_DIR, 'laudo.pdf'))
