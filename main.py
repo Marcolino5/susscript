@@ -1644,7 +1644,7 @@ class LatexBuilder:
                 f"{{\\centering {data['qtd']}}} & "
                 f"{{\\raggedleft {br_money(data['paid'])}}} & "
                 f"{{\\raggedleft {br_money(data['due'])}}} & "
-                f"{{\\raggedleft {fonte}}}" \\\\ \\hline \n"
+                f"{{\\raggedleft {fonte}}} \\\\ \\hline \n"
             )
         
             total_linhas_processadas += 1
