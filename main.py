@@ -1565,7 +1565,7 @@ class LatexBuilder:
         \newpage
         \section{Detalhamento dos Procedimentos}
         
-        \begin{longtable}[c]{|p{1.5cm}|p{2.0cm}|p{5.0cm}|p{1.0cm}|p{2.0cm}|p{2.0cm}|p{4.0cm}|}
+        \begin{longtable}[c]{|p{1.5cm}|p{2.0cm}|p{6.0cm}|p{1.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|}
         \caption{Detalhamento completo dos procedimentos} \\ \hline
         
         \textbf{\centering Mês} & 
