@@ -1603,7 +1603,7 @@ class LatexBuilder:
             for p in m.procedimentos:
                 code = p.get('PA_PROC_ID', p.get('SP_ATOPROF', '?'))
                 tipo_display = p.get('TIPO_SISTEMA', '-')
-                fonte = p.get('FILE_PATH', '-')
+                fonte = p.get('FONTE', '-')
                 
                 try:
                     qtd = int((p.get('PA_QTDAPR', p.get('SP_QTD_ATO', 0))))
