@@ -1222,7 +1222,7 @@ class Processing:
         brute_sum = df["PA_VALAPR"].sum()
         expected_sum = df["VALOR_DEVIDO_IVR"].sum()
         df['TIPO_SISTEMA'] = 'SIA'
-        df['FONTE'] = file_path
+        df['FONTE'] = os.path.basename(file_path)
 
         colunas_detalhe = ['PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR', 'VALOR_DEVIDO_IVR', 'FONTE']
         procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
