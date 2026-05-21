@@ -1222,8 +1222,9 @@ class Processing:
         brute_sum = df["PA_VALAPR"].sum()
         expected_sum = df["VALOR_DEVIDO_IVR"].sum()
         df['TIPO_SISTEMA'] = 'SIA'
+        df['FONTE'] = file_path
 
-        colunas_detalhe = ['PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR', 'VALOR_DEVIDO_IVR']
+        colunas_detalhe = ['PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR', 'VALOR_DEVIDO_IVR', 'FONTE']
         procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
 
         print(f"DEBUG PYTHON: Encontrei {len(procedimentos_lista)} procedimentos para o mês {when}")
@@ -1308,8 +1309,9 @@ class Processing:
         brute_sum = df["SP_VALATO"].sum()
         df['VALOR_DEVIDO_IVR'] = df["SP_VALATO"] * 1.5
         df['TIPO_SISTEMA'] = 'SIH'
+        df['FONTE'] = file_path
 
-        colunas_detalhe = ['SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO', 'VALOR_DEVIDO_IVR']
+        colunas_detalhe = ['SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO', 'VALOR_DEVIDO_IVR', 'FONTE']
         procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
 
         print(f"DEBUG PYTHON: Encontrei {len(procedimentos_lista)} procedimentos para o mês {when}")
@@ -1601,6 +1603,7 @@ class LatexBuilder:
             for p in m.procedimentos:
                 code = p.get('PA_PROC_ID', p.get('SP_ATOPROF', '?'))
                 tipo_display = p.get('TIPO_SISTEMA', '-')
+                fonte = p.get('FILE_PATH', '-')
                 
                 try:
                     qtd = int((p.get('PA_QTDAPR', p.get('SP_QTD_ATO', 0))))
@@ -1623,6 +1626,7 @@ class LatexBuilder:
                         "qtd": 0,
                         "paid": 0.0,
                         "due": 0.0,
+                        "source": fonte,
                     }
         
                 aggregated[key]["qtd"] += qtd
@@ -1635,7 +1639,6 @@ class LatexBuilder:
         
             descricao = Tunep.get_description(data["code"], data["tipo"])
             descricao = descricao.replace('&', '\\&').replace('%', '\\%').replace('_', '\\_')
-            fonte = "fonte"
         
             latex += (
                 f"{{\\centering {data['month']}}} & "
@@ -1644,7 +1647,7 @@ class LatexBuilder:
                 f"{{\\centering {data['qtd']}}} & "
                 f"{{\\raggedleft {br_money(data['paid'])}}} & "
                 f"{{\\raggedleft {br_money(data['due'])}}} & "
-                f"{{\\raggedleft {fonte}}} \\\\ \\hline \n"
+                f"{{\\raggedleft {data['source']}}} \\\\ \\hline \n"
             )
         
             total_linhas_processadas += 1
