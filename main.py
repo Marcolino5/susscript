@@ -1569,7 +1569,8 @@ class LatexBuilder:
         \textbf{\centering Descrição} & 
         \textbf{\centering Qtd} & 
         \textbf{\centering Pago (R\$)} &
-        \textbf{\centering Devido (R\$)} \\ \hline
+        \textbf{\centering Devido (R\$)} &
+         \textbf{\centering Fonte} \\ \hline
         \endfirsthead
 
         \hline
@@ -1578,7 +1579,8 @@ class LatexBuilder:
         \textbf{\centering Descrição} & 
         \textbf{\centering Qtd} & 
         \textbf{\centering Pago (R\$)} & 
-        \textbf{\centering Devido (R\$)} \\ \hline
+        \textbf{\centering Devido (R\$)} &
+        \textbf{\centering Fonte} \\ \hline
         \endhead
         """
         
