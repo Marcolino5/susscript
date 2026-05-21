@@ -1309,7 +1309,7 @@ class Processing:
         brute_sum = df["SP_VALATO"].sum()
         df['VALOR_DEVIDO_IVR'] = df["SP_VALATO"] * 1.5
         df['TIPO_SISTEMA'] = 'SIH'
-        df['FONTE'] = file_path
+        df['FONTE'] = os.path.basename(file_path)
 
         colunas_detalhe = ['SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO', 'VALOR_DEVIDO_IVR', 'FONTE']
         procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
