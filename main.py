@@ -1562,18 +1562,22 @@ class LatexBuilder:
         latex = r"""
         \newpage
         \section{Detalhamento dos Procedimentos}
-        \begin{longtable}[c]{|p{1.5cm}|p{2.0cm}|p{7.5cm}|p{1.0cm}|p{2.5cm}|p{2.5cm}|}
+        
+        \begin{longtable}[c]{|p{1.5cm}|p{2.0cm}|p{6.0cm}|p{1.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|}
         \caption{Detalhamento completo dos procedimentos} \\ \hline
+        
         \textbf{\centering Mês} & 
         \textbf{\centering Cód.} & 
         \textbf{\centering Descrição} & 
         \textbf{\centering Qtd} & 
         \textbf{\centering Pago (R\$)} &
         \textbf{\centering Devido (R\$)} &
-         \textbf{\centering Fonte} \\ \hline
+        \textbf{\centering Fonte} \\ \hline
+        
         \endfirsthead
-
+        
         \hline
+        
         \textbf{\centering Mês} & 
         \textbf{\centering Cód.} & 
         \textbf{\centering Descrição} & 
@@ -1581,6 +1585,7 @@ class LatexBuilder:
         \textbf{\centering Pago (R\$)} & 
         \textbf{\centering Devido (R\$)} &
         \textbf{\centering Fonte} \\ \hline
+        
         \endhead
         """
         
