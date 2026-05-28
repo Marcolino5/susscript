@@ -51,11 +51,11 @@ Com base nas informações extraídas do DATASUS de procedimentos hospitalares e
 
 TOTAL_HEADER = '''
 \\section{Resumo Total}
-\\begin{longtable}[c]{|p{1.7cm}|p{2.6cm}|p{2.6cm}|p{2.3cm}|}
+\\begin{longtable}[c]{|p{2.6cm}|p{2.6cm}|p{2.6cm}|p{2.3cm}|}
 	\\caption{Resumo total} \\\\ \\hline
-	\\textbf{Diferença TUNEP} &
-	\\textbf{Atualização} &
-	\\textbf{Total devido}
+	\\textbf{Diferença devida e não paga (R\$)} &
+	\\textbf{Atualização (R\$)} &
+	\\textbf{Valor total devido (R\$)}
 	\\endhead \\hline
 '''
 
@@ -68,9 +68,9 @@ YEAR_HEADER = '''
 \\begin{longtable}[c]{|p{1.7cm}|p{2.6cm}|p{2.6cm}|p{2.3cm}|}
 	\\caption{Resumo ano a ano} \\\\ \\hline
 	\\textbf{Ano} &
-	\\textbf{Diferença TUNEP} &
-	\\textbf{Atualização} &
-	\\textbf{Total devido}
+	\\textbf{Diferença devida e não paga (R\$)} &
+	\\textbf{Atualização (R\$)} &
+	\\textbf{Valor total devido (R\$)}
 	\\endhead \\hline
 '''
 
@@ -80,13 +80,14 @@ YEAR_FOOTER = '''
 
 MONTH_HEADER = '''
 \\section{Resumo mensal}
-\\begin{longtable}[c]{|p{1.7cm}|p{2.6cm}|p{2.6cm}|p{2.3cm}|p{2.3cm}|c|}
+\\begin{longtable}[c]{|p{1.7cm}|p{2.6cm}|p{2.6cm}|p{2.3cm}|p{2.3cm}|p{2.3cm}|c|}
 	\\caption{Resumo mês a mês} \\\\ \\hline
-	\\textbf{Mês} &
-	\\textbf{Valor original pago pelo SUS} &
-	\\textbf{Diferença TUNEP} &
-	\\textbf{Atualização} &
-	\\textbf{Total devido}
+	\\textbf{Mês do Crédito} &
+	\\textbf{Valor original pago pelo SUS (R\$)} &
+	\\textbf{Diferença devida e não paga (R\$)} &
+	\\textbf{Atualização antes de 01/2022} &
+	\\textbf{Selic a partir de 01/2022} &
+	\\textbf{Valor total devido (R\$)}
 	\\endhead \\hline
 '''
 
