@@ -1242,13 +1242,38 @@ class Processing:
 
     @staticmethod
     def month_SIA_TUNEP(file_path: str) -> MonthInfo:
-        df = pd.read_csv(file_path, usecols=SIA_RELEVANT_FIELDS, dtype={'PA_PROC_ID': 'str', 'PA_QTDAPR': 'int'})
         when = Date.from_sus_file_name(file_path)
-        rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
+        expected = set(SIA_RELEVANT_FIELDS)
 
-        res = float(df.apply(Processing.row_SIA_TUNEP, axis=1, result_type='reduce').sum())
-        got = float(df["PA_VALAPR"].sum())
-        return MonthInfo(when, 'TUNEP', 'SIA', res, got, rate)
+        if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
+            return None
+        
+        try:
+            df = pd.read_csv(file_path, encoding="latin1", sep=None, engine="python")
+        except Exception:
+             df = pd.read_csv(file_path, encoding="latin1", sep=';', engine="python")
+        df.columns = df.columns.str.strip()
+        
+        if not expected.issubset(set(df.columns)):
+            print("File does not match SIA schema:", file_path)
+            return None
+
+        # Continuar processamento normalmente
+        rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
+        df['VALOR_DEVIDO_IVR'] = df['PA_VALAPR'] * 1.5
+        brute_sum = df["PA_VALAPR"].sum()
+        expected_sum = df["VALOR_DEVIDO_IVR"].sum()
+        df['TIPO_SISTEMA'] = 'SIA'
+        df['FONTE'] = os.path.basename(file_path)
+
+        colunas_detalhe = ['PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR', 'VALOR_DEVIDO_IVR', 'FONTE']
+        procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
+
+        print(f"DEBUG PYTHON: Encontrei {len(procedimentos_lista)} procedimentos para o mês {when}")
+        if procedimentos_lista:
+            print(f"Exemplo do primeiro item: {procedimentos_lista[0]}")
+        
+        return MonthInfo(when, 'IVR', 'SIA', expected_sum, brute_sum, rate, procedimentos_lista)
 
 
     @staticmethod
@@ -1344,8 +1369,9 @@ class Processing:
         brute_sum = df["SP_VALATO"].sum()
         df['VALOR_DEVIDO_IVR'] = df["SP_VALATO"] * 1.5
         df['TIPO_SISTEMA'] = 'SIH'
+        df['FONTE'] = os.path.basename(file_path)
 
-        colunas_detalhe = ['SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO', 'VALOR_DEVIDO_IVR']
+        colunas_detalhe = ['SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO', 'VALOR_DEVIDO_IVR', 'FONTE']
         procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
 
         print(f"DEBUG PYTHON: Encontrei {len(procedimentos_lista)} procedimentos para o mês {when}")
