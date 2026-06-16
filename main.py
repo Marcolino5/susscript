@@ -1225,7 +1225,7 @@ class Processing:
         elif filename.startswith('AR'):
             valor_col = 'AP_VL_AP'
         df['VALOR_DEVIDO_IVR'] = df[valor_col] * 1.5
-        brute_sum = approved.sum()
+        brute_sum = df[valor_col].sum()
         expected_sum = df["VALOR_DEVIDO_IVR"].sum()
 
         colunas_detalhe = ['PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR', 'VALOR_DEVIDO_IVR', 'FONTE']
