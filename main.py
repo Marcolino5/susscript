@@ -547,7 +547,8 @@ class Downloads:
     def download_file(file: str):
         PREFIX_LOCATION = {
         'PA': ProjPaths.SIA_DOWNLOAD_DIR,
-        'SP': ProjPaths.SIH_DOWNLOAD_DIR 
+        'AR': ProjPaths.SIA_DOWNLOAD_DIR,
+        'SP': ProjPaths.SIH_DOWNLOAD_DIR,
         }
         file_name = path.split(file)[-1]
         file_prefix = file_name[:2]
@@ -584,6 +585,7 @@ class Downloads:
     
         PREFIX_LOCATION = {
             'PA': ProjPaths.SIA_DOWNLOAD_DIR,
+            'AR': ProjPaths.SIA_DOWNLOAD_DIR,
             'SP': ProjPaths.SIH_DOWNLOAD_DIR
         }
     
