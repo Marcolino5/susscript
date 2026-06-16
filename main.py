@@ -628,8 +628,8 @@ class Downloads:
     @staticmethod
     def find_files(sistema: str, estado: str, inicio: Date, fim: Date):
         SEARCH_RREFIXES = {
-        'SIA': 'PA',
-        'SIH': 'SP'
+        'SIA': ['PA','AR'],
+        'SIH': ['SP']
         }
 
         SEARCH_DIRS = {
@@ -643,33 +643,33 @@ class Downloads:
         ftp.login()
 
         search_target = SEARCH_DIRS[sistema]
-        search_prefix = SEARCH_RREFIXES[sistema]
+        search_prefixes = SEARCH_RREFIXES[sistema]
 
         files: list[str] = []
 
-
-        for dir in search_target:
-            def append_to_file(file: str):
-                file = file.split(' ')[-1]
-
-                if file[0:2] != search_prefix:
-                    return
-
-                if file[2:4] != estado:
-                    return
-
-                try:
-                    date = Date.from_string(file[6:8] + "-" + file[4:6])
-                except:
-                    return
-
-                if date < inicio or fim < date:
-                    return
-
-                files.append(path.join(dir, file))
-
-            ftp.cwd(dir)
-            ftp.retrlines("LIST", append_to_file)
+        for search_prefix in search_prefixes:
+            for dir in search_target:
+                def append_to_file(file: str):
+                    file = file.split(' ')[-1]
+    
+                    if file[0:2] != search_prefix:
+                        return
+    
+                    if file[2:4] != estado:
+                        return
+    
+                    try:
+                        date = Date.from_string(file[6:8] + "-" + file[4:6])
+                    except:
+                        return
+    
+                    if date < inicio or fim < date:
+                        return
+    
+                    files.append(path.join(dir, file))
+    
+                ftp.cwd(dir)
+                ftp.retrlines("LIST", append_to_file)
 
         ftp.quit()
 
