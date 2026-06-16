@@ -747,7 +747,6 @@ class Conversions:
             dbf_file_path = path.join(dbf_dir, dbf_file_name)
             csv_file_path = path.join(csv_dir, csv_file_name)
     
-            # 1️⃣ Convert DBC → DBF
             result1 = subprocess.run(
                 [ProjPaths.BLAST_DBF_PATH, file, dbf_file_path],
                 stdout=subprocess.DEVNULL,
@@ -764,7 +763,6 @@ class Conversions:
                 print(f"Erro convertendo DBC para DBF: {file}")
                 return
     
-            # 2️⃣ Convert DBF → CSV
             result2 = subprocess.run(
                 [ProjPaths.DBF2CSV_PATH, dbf_file_path, csv_file_path, cnes, sistema],
                 stdout=subprocess.DEVNULL,
@@ -775,11 +773,9 @@ class Conversions:
                 print(f"Erro convertendo DBF para CSV: {dbf_file_path}")
                 return
     
-            # 3️⃣ DELETE DBF immediately (saves GBs)
             if path.exists(dbf_file_path):
                 os.remove(dbf_file_path)
     
-            # 4️⃣ DELETE original DBC immediately (VERY IMPORTANT)
             if path.exists(file):
                 os.remove(file)
     
@@ -1217,14 +1213,20 @@ class Processing:
         if not expected.issubset(set(df.columns)):
             print("File does not match SIA schema:", file_path)
             return None
-
-        # Continuar processamento normalmente
+            
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
-        df['VALOR_DEVIDO_IVR'] = df['PA_VALAPR'] * 1.5
-        brute_sum = df["PA_VALAPR"].sum()
-        expected_sum = df["VALOR_DEVIDO_IVR"].sum()
+
+        filename = os.path.basename(file_path)
+        df['FONTE'] = filename
         df['TIPO_SISTEMA'] = 'SIA'
-        df['FONTE'] = os.path.basename(file_path)
+
+        if filename.startswith('PA'):
+            valor_col = 'PA_VALAPR'
+        else if filename.startswith('AR'):
+            valor_col = 'AP_VL_AP'
+        df['VALOR_DEVIDO_IVR'] = df[valor_col] * 1.5
+        brute_sum = approved.sum()
+        expected_sum = df["VALOR_DEVIDO_IVR"].sum()
 
         colunas_detalhe = ['PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR', 'VALOR_DEVIDO_IVR', 'FONTE']
         procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
@@ -1621,7 +1623,6 @@ class LatexBuilder:
         
         total_linhas_processadas = 0
 
-        # 🔹 First pass: aggregate procedures
         aggregated = {}  # (month, code) -> accumulator dict
         
         for m in months:
@@ -1662,7 +1663,6 @@ class LatexBuilder:
                 aggregated[key]["due"] += due
 
 
-        # 🔹 Second pass: generate LaTeX from grouped data
         for data in aggregated.values():
         
             descricao = Tunep.get_description(data["code"], data["tipo"])
