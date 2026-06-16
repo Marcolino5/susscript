@@ -1222,7 +1222,7 @@ class Processing:
 
         if filename.startswith('PA'):
             valor_col = 'PA_VALAPR'
-        else if filename.startswith('AR'):
+        elif filename.startswith('AR'):
             valor_col = 'AP_VL_AP'
         df['VALOR_DEVIDO_IVR'] = df[valor_col] * 1.5
         brute_sum = approved.sum()
