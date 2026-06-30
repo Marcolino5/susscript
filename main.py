@@ -549,6 +549,7 @@ class Downloads:
         'PA': ProjPaths.SIA_DOWNLOAD_DIR,
         'AR': ProjPaths.SIA_DOWNLOAD_DIR,
         'SP': ProjPaths.SIH_DOWNLOAD_DIR,
+        'RD': ProjPaths.SIH_DOWNLOAD_DIR,
         }
         file_name = path.split(file)[-1]
         file_prefix = file_name[:2]
@@ -586,7 +587,8 @@ class Downloads:
         PREFIX_LOCATION = {
             'PA': ProjPaths.SIA_DOWNLOAD_DIR,
             'AR': ProjPaths.SIA_DOWNLOAD_DIR,
-            'SP': ProjPaths.SIH_DOWNLOAD_DIR
+            'SP': ProjPaths.SIH_DOWNLOAD_DIR,
+            'RD': ProjPaths.SIH_DOWNLOAD_DIR
         }
     
         for file in files:
@@ -600,15 +602,12 @@ class Downloads:
                     ftp = FTP("ftp.datasus.gov.br")
                     ftp.login()
     
-                    # 🔥 PEGA TAMANHO REMOTO
                     remote_size = ftp.size(file)
     
-                    # 🔥 BAIXA O ARQUIVO
                     with open(local_file_path, 'wb') as f:
                         ftp.retrbinary(f"RETR {file}", f.write)
                     ftp.quit()
     
-                    # 🔥 VALIDA TAMANHO
                     local_size = os.path.getsize(local_file_path)
     
     
@@ -631,7 +630,7 @@ class Downloads:
     def find_files(sistema: str, estado: str, inicio: Date, fim: Date):
         SEARCH_RREFIXES = {
         'SIA': ['PA','AR'],
-        'SIH': ['SP']
+        'SIH': ['SP','RD']
         }
 
         SEARCH_DIRS = {
