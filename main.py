@@ -16,7 +16,7 @@ import time
 import math
 
 SIA_RELEVANT_FIELDS = np.array(['PA_CMP', 'PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR'])
-SIH_RELEVANT_FIELDS = np.array(['SP_AA', 'SP_MM','SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO', 'VAL_TOT'])
+SIH_RELEVANT_FIELDS = np.array(['SP_AA', 'SP_MM','SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO'])
 
 def br_money(value: float) -> str:
     return f"{value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
@@ -1327,11 +1327,6 @@ class Processing:
              df = pd.read_csv(file_path, encoding="latin1", sep=';', engine="python")
         df.columns = df.columns.str.strip()
         
-        if not expected.issubset(set(df.columns)):
-            print("File does not match SIH schema:", file_path)
-            return None
-
-        df = df[SIH_RELEVANT_FIELDS]
         if filename.startswith('SP'):
             valor_col = 'SP_VALATO'
         elif filename.startswith('RD'):
