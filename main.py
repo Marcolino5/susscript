@@ -16,7 +16,7 @@ import time
 import math
 
 SIA_RELEVANT_FIELDS = np.array(['PA_CMP', 'PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR'])
-SIH_RELEVANT_FIELDS = np.array(['SP_AA', 'SP_MM','SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO'])
+SIH_RELEVANT_FIELDS = np.array(['SP_AA', 'SP_MM','SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO', 'VAL_TOT'])
 
 def br_money(value: float) -> str:
     return f"{value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
@@ -1332,10 +1332,14 @@ class Processing:
             return None
 
         df = df[SIH_RELEVANT_FIELDS]
+        if filename.startswith('SP'):
+            valor_col = 'SP_VALATO'
+        elif filename.startswith('RD'):
+            valor_col = 'VAL_TOT'
         when = Date.from_sus_file_name(file_path)
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
-        brute_sum = df["SP_VALATO"].sum()
-        df['VALOR_DEVIDO_IVR'] = df["SP_VALATO"] * 1.5
+        brute_sum = df[valor_col].sum()
+        df['VALOR_DEVIDO_IVR'] = df[valor_col] * 1.5
         df['TIPO_SISTEMA'] = 'SIH'
         df['FONTE'] = os.path.basename(file_path)
 
