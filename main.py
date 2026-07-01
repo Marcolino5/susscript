@@ -1332,6 +1332,7 @@ class Processing:
             valor_col = 'SP_VALATO'
         elif filename.startswith('RD'):
             valor_col = 'VAL_TOT'
+            raise ValueError(df.columns)
         when = Date.from_sus_file_name(file_path)
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
         brute_sum = df[valor_col].sum()
