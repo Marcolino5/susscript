@@ -706,21 +706,21 @@ class Conversions:
     
         PREFIX_SYSTEM = {
             'PA': 'SIA',
-            'RS': 'SIA',
+            'AR': 'SIA',
             'SP': 'SIH',
             'RD': 'SIH'
         }
     
         PREFIX_CSV_DIR = {
             'PA': ProjPaths.SIA_CSVS_DIR,
-            'RS': ProjPaths.SIA_CSVS_DIR,
+            'AR': ProjPaths.SIA_CSVS_DIR,
             'SP': ProjPaths.SIH_CSVS_DIR,
             'RD': ProjPaths.SIH_CSVS_DIR
         }
     
         PREFIX_DBF_DIR = {
             'PA': ProjPaths.SIA_DBFS_DIR,
-            'RS': ProjPaths.SIA_DBFS_DIR,
+            'AR': ProjPaths.SIA_DBFS_DIR,
             'SP': ProjPaths.SIH_DBFS_DIR,
             'RD': ProjPaths.SIH_DBFS_DIR
         }
@@ -1858,8 +1858,6 @@ def main():
 
         sih_files = [path.join(ProjPaths.SIH_CSVS_DIR, file) for file in os.listdir(ProjPaths.SIH_CSVS_DIR)]
         sia_files = [path.join(ProjPaths.SIA_CSVS_DIR, file) for file in os.listdir(ProjPaths.SIA_CSVS_DIR)]
-
-        raise ValueError(sih_files)
 
         months += Processing.months(sia_files, sih_files, ProjParams.METHOD)
         ProjPaths.empty_dirs()
