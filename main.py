@@ -1326,7 +1326,8 @@ class Processing:
         except Exception:
              df = pd.read_csv(file_path, encoding="latin1", sep=';', engine="python")
         df.columns = df.columns.str.strip()
-        
+
+        filename = os.path.basename(file_path)
         if filename.startswith('SP'):
             valor_col = 'SP_VALATO'
         elif filename.startswith('RD'):
@@ -1336,7 +1337,7 @@ class Processing:
         brute_sum = df[valor_col].sum()
         df['VALOR_DEVIDO_IVR'] = df[valor_col] * 1.5
         df['TIPO_SISTEMA'] = 'SIH'
-        df['FONTE'] = os.path.basename(file_path)
+        df['FONTE'] = filename
 
         colunas_detalhe = ['SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO', 'VALOR_DEVIDO_IVR', 'FONTE']
         procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
