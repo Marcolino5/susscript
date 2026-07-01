@@ -708,7 +708,7 @@ class Conversions:
             'PA': 'SIA',
             'RS': 'SIA',
             'SP': 'SIH',
-            'RD': SIH
+            'RD': 'SIH'
         }
     
         PREFIX_CSV_DIR = {
