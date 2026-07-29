@@ -208,7 +208,7 @@ class ProjPaths:
     def create_dbf2csv():
         if not os.path.exists(ProjPaths.BLAST_DBF_PATH):
             os.chdir(ProjPaths.BINARIES_DIR)
-            subprocess.run(["git", "clone", "https://github.com/rmxvrelease/dbc2csv.git"],
+            subprocess.run(["git", "clone", "https://github.com/marcolino5/dbc2csv.git"],
                 capture_output=True,
                 text=True,
                 check=True
