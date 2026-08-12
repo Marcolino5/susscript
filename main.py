@@ -547,9 +547,7 @@ class Downloads:
     def download_file(file: str):
         PREFIX_LOCATION = {
         'PA': ProjPaths.SIA_DOWNLOAD_DIR,
-        'AR': ProjPaths.SIA_DOWNLOAD_DIR,
-        'SP': ProjPaths.SIH_DOWNLOAD_DIR,
-        'RD': ProjPaths.SIH_DOWNLOAD_DIR,
+        'SP': ProjPaths.SIH_DOWNLOAD_DIR 
         }
         file_name = path.split(file)[-1]
         file_prefix = file_name[:2]
@@ -586,9 +584,7 @@ class Downloads:
     
         PREFIX_LOCATION = {
             'PA': ProjPaths.SIA_DOWNLOAD_DIR,
-            'AR': ProjPaths.SIA_DOWNLOAD_DIR,
-            'SP': ProjPaths.SIH_DOWNLOAD_DIR,
-            'RD': ProjPaths.SIH_DOWNLOAD_DIR
+            'SP': ProjPaths.SIH_DOWNLOAD_DIR
         }
     
         for file in files:
@@ -602,12 +598,15 @@ class Downloads:
                     ftp = FTP("ftp.datasus.gov.br")
                     ftp.login()
     
+                    # 🔥 PEGA TAMANHO REMOTO
                     remote_size = ftp.size(file)
     
+                    # 🔥 BAIXA O ARQUIVO
                     with open(local_file_path, 'wb') as f:
                         ftp.retrbinary(f"RETR {file}", f.write)
                     ftp.quit()
     
+                    # 🔥 VALIDA TAMANHO
                     local_size = os.path.getsize(local_file_path)
     
     
@@ -629,8 +628,8 @@ class Downloads:
     @staticmethod
     def find_files(sistema: str, estado: str, inicio: Date, fim: Date):
         SEARCH_RREFIXES = {
-        'SIA': ['PA','AR'],
-        'SIH': ['SP','RD']
+        'SIA': 'PA',
+        'SIH': 'SP'
         }
 
         SEARCH_DIRS = {
@@ -644,33 +643,33 @@ class Downloads:
         ftp.login()
 
         search_target = SEARCH_DIRS[sistema]
-        search_prefixes = SEARCH_RREFIXES[sistema]
+        search_prefix = SEARCH_RREFIXES[sistema]
 
         files: list[str] = []
 
-        for search_prefix in search_prefixes:
-            for dir in search_target:
-                def append_to_file(file: str):
-                    file = file.split(' ')[-1]
-    
-                    if file[0:2] != search_prefix:
-                        return
-    
-                    if file[2:4] != estado:
-                        return
-    
-                    try:
-                        date = Date.from_string(file[6:8] + "-" + file[4:6])
-                    except:
-                        return
-    
-                    if date < inicio or fim < date:
-                        return
-    
-                    files.append(path.join(dir, file))
-    
-                ftp.cwd(dir)
-                ftp.retrlines("LIST", append_to_file)
+
+        for dir in search_target:
+            def append_to_file(file: str):
+                file = file.split(' ')[-1]
+
+                if file[0:2] != search_prefix:
+                    return
+
+                if file[2:4] != estado:
+                    return
+
+                try:
+                    date = Date.from_string(file[6:8] + "-" + file[4:6])
+                except:
+                    return
+
+                if date < inicio or fim < date:
+                    return
+
+                files.append(path.join(dir, file))
+
+            ftp.cwd(dir)
+            ftp.retrlines("LIST", append_to_file)
 
         ftp.quit()
 
@@ -706,23 +705,17 @@ class Conversions:
     
         PREFIX_SYSTEM = {
             'PA': 'SIA',
-            'AR': 'SIA',
-            'SP': 'SIH',
-            'RD': 'SIH'
+            'SP': 'SIH'
         }
     
         PREFIX_CSV_DIR = {
             'PA': ProjPaths.SIA_CSVS_DIR,
-            'AR': ProjPaths.SIA_CSVS_DIR,
-            'SP': ProjPaths.SIH_CSVS_DIR,
-            'RD': ProjPaths.SIH_CSVS_DIR
+            'SP': ProjPaths.SIH_CSVS_DIR
         }
     
         PREFIX_DBF_DIR = {
             'PA': ProjPaths.SIA_DBFS_DIR,
-            'AR': ProjPaths.SIA_DBFS_DIR,
-            'SP': ProjPaths.SIH_DBFS_DIR,
-            'RD': ProjPaths.SIH_DBFS_DIR
+            'SP': ProjPaths.SIH_DBFS_DIR
         }
     
         try:
@@ -752,6 +745,7 @@ class Conversions:
             dbf_file_path = path.join(dbf_dir, dbf_file_name)
             csv_file_path = path.join(csv_dir, csv_file_name)
     
+            # 1️⃣ Convert DBC → DBF
             result1 = subprocess.run(
                 [ProjPaths.BLAST_DBF_PATH, file, dbf_file_path],
                 stdout=subprocess.DEVNULL,
@@ -768,6 +762,7 @@ class Conversions:
                 print(f"Erro convertendo DBC para DBF: {file}")
                 return
     
+            # 2️⃣ Convert DBF → CSV
             result2 = subprocess.run(
                 [ProjPaths.DBF2CSV_PATH, dbf_file_path, csv_file_path, cnes, sistema],
                 stdout=subprocess.DEVNULL,
@@ -778,9 +773,11 @@ class Conversions:
                 print(f"Erro convertendo DBF para CSV: {dbf_file_path}")
                 return
     
+            # 3️⃣ DELETE DBF immediately (saves GBs)
             if path.exists(dbf_file_path):
                 os.remove(dbf_file_path)
     
+            # 4️⃣ DELETE original DBC immediately (VERY IMPORTANT)
             if path.exists(file):
                 os.remove(file)
     
@@ -1218,20 +1215,14 @@ class Processing:
         if not expected.issubset(set(df.columns)):
             print("File does not match SIA schema:", file_path)
             return None
-            
+
+        # Continuar processamento normalmente
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
-
-        filename = os.path.basename(file_path)
-        df['FONTE'] = filename
-        df['TIPO_SISTEMA'] = 'SIA'
-
-        if filename.startswith('PA'):
-            valor_col = 'PA_VALAPR'
-        elif filename.startswith('AR'):
-            valor_col = 'AP_VL_AP'
-        df['VALOR_DEVIDO_IVR'] = df[valor_col] * 1.5
-        brute_sum = df[valor_col].sum()
+        df['VALOR_DEVIDO_IVR'] = df['PA_VALAPR'] * 1.5
+        brute_sum = df["PA_VALAPR"].sum()
         expected_sum = df["VALOR_DEVIDO_IVR"].sum()
+        df['TIPO_SISTEMA'] = 'SIA'
+        df['FONTE'] = os.path.basename(file_path)
 
         colunas_detalhe = ['PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR', 'VALOR_DEVIDO_IVR', 'FONTE']
         procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
@@ -1332,19 +1323,18 @@ class Processing:
         except Exception:
              df = pd.read_csv(file_path, encoding="latin1", sep=';', engine="python")
         df.columns = df.columns.str.strip()
+        
+        if not expected.issubset(set(df.columns)):
+            print("File does not match SIH schema:", file_path)
+            return None
 
-        filename = os.path.basename(file_path)
-        if filename.startswith('SP'):
-            valor_col = 'SP_VALATO'
-            raise ValueError(df.columns.tolist())
-        elif filename.startswith('RD'):
-            valor_col = 'VAL_TOT'
+        df = df[SIH_RELEVANT_FIELDS]
         when = Date.from_sus_file_name(file_path)
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
-        brute_sum = df[valor_col].sum()
-        df['VALOR_DEVIDO_IVR'] = df[valor_col] * 1.5
+        brute_sum = df["SP_VALATO"].sum()
+        df['VALOR_DEVIDO_IVR'] = df["SP_VALATO"] * 1.5
         df['TIPO_SISTEMA'] = 'SIH'
-        df['FONTE'] = filename
+        df['FONTE'] = os.path.basename(file_path)
 
         colunas_detalhe = ['SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO', 'VALOR_DEVIDO_IVR', 'FONTE']
         procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
@@ -1629,6 +1619,7 @@ class LatexBuilder:
         
         total_linhas_processadas = 0
 
+        # 🔹 First pass: aggregate procedures
         aggregated = {}  # (month, code) -> accumulator dict
         
         for m in months:
@@ -1669,6 +1660,7 @@ class LatexBuilder:
                 aggregated[key]["due"] += due
 
 
+        # 🔹 Second pass: generate LaTeX from grouped data
         for data in aggregated.values():
         
             descricao = Tunep.get_description(data["code"], data["tipo"])
