@@ -506,7 +506,7 @@ class InterestRate:
         s_months_since_12_2021 = (s.year - 2021)*12 + s.month - 12
         e_months_since_12_2021 = (e.year - 2021)*12 + e.month - 12
 
-        cumulative_rate = InterestRate.SELIC[s_months_since_12_2021 : e_months_since_12_2021].sum()
+        cumulative_rate = InterestRate.SELIC[s_months_since_12_2021 -1 : e_months_since_12_2021].sum()
 
         return cumulative_rate
 
@@ -745,7 +745,6 @@ class Conversions:
             dbf_file_path = path.join(dbf_dir, dbf_file_name)
             csv_file_path = path.join(csv_dir, csv_file_name)
     
-            # 1️⃣ Convert DBC → DBF
             result1 = subprocess.run(
                 [ProjPaths.BLAST_DBF_PATH, file, dbf_file_path],
                 stdout=subprocess.DEVNULL,
@@ -762,7 +761,6 @@ class Conversions:
                 print(f"Erro convertendo DBC para DBF: {file}")
                 return
     
-            # 2️⃣ Convert DBF → CSV
             result2 = subprocess.run(
                 [ProjPaths.DBF2CSV_PATH, dbf_file_path, csv_file_path, cnes, sistema],
                 stdout=subprocess.DEVNULL,
@@ -773,11 +771,9 @@ class Conversions:
                 print(f"Erro convertendo DBF para CSV: {dbf_file_path}")
                 return
     
-            # 3️⃣ DELETE DBF immediately (saves GBs)
             if path.exists(dbf_file_path):
                 os.remove(dbf_file_path)
     
-            # 4️⃣ DELETE original DBC immediately (VERY IMPORTANT)
             if path.exists(file):
                 os.remove(file)
     
