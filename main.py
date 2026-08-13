@@ -492,9 +492,9 @@ class InterestRate:
         try: selic = pd.read_csv(f"https://api.bcb.gov.br/dados/serie/bcdata.sgs.4390/dados?formato=csv&dataInicial=01/12/2021&dataFinal={end_time_str}", sep=";")
         except: selic = pd.read_csv(ProjPaths.SELIC_TABLE_PATH)
 
+        selic.to_csv(ProjPaths.SELIC_TABLE_PATH, index=False)
         selic['valor'] = (selic['valor'].astype(str).str.replace(",", ".").astype(float) / 100)
         InterestRate.SELIC = selic['valor'].__array__()
-        selic.to_csv(ProjPaths.SELIC_TABLE_PATH, index=False)
 
 
     @staticmethod
