@@ -506,7 +506,7 @@ class InterestRate:
         s_months_since_12_2021 = (s.year - 2021)*12 + s.month - 12
         e_months_since_12_2021 = (e.year - 2021)*12 + e.month - 12
 
-        cumulative_rate = InterestRate.SELIC[s_months_since_12_2021-1:e_months_since_12_2021].sum()
+        cumulative_rate = InterestRate.SELIC[s_months_since_12_2021 : e_months_since_12_2021].sum()
 
         return cumulative_rate
 
