@@ -500,13 +500,13 @@ class InterestRate:
     @staticmethod
     def cumulative_selic(s: Date, e: Date) -> float:
         '''WARNING: JUROS SIMPLES'''
-        if (s < Date.from_string('01-2022')):
-            s = Date.from_string('01-2022')
+        if (s < Date.from_string('12-2021')):
+            s = Date.from_string('12-2021')
 
         s_months_since_12_2021 = (s.year - 2021)*12 + s.month - 12
         e_months_since_12_2021 = (e.year - 2021)*12 + e.month - 12
 
-        cumulative_rate = InterestRate.SELIC[s_months_since_12_2021 -1 : e_months_since_12_2021].sum()
+        cumulative_rate = InterestRate.SELIC[s_months_since_12_2021 : e_months_since_12_2021].sum()
 
         return cumulative_rate
 
