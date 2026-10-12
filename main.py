@@ -787,6 +787,7 @@ class Conversions:
     
         except Exception as e:
             print(f"Erro processando {file}: {e}")
+            raise
 
     @staticmethod
     def unite_files(system: str):
