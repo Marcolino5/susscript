@@ -773,7 +773,7 @@ class Conversions:
             
             csv_hash = hashlib.sha256(csv_bytes).hexdigest()
             
-            raise ValueError(
+            raise Exception (
                 f"CSV: {csv_file_name} | "
                 f"Bytes: {len(csv_bytes)} | "
                 f"SHA256: {csv_hash}"
