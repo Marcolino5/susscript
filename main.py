@@ -598,15 +598,12 @@ class Downloads:
                     ftp = FTP("ftp.datasus.gov.br")
                     ftp.login()
     
-                    # 🔥 PEGA TAMANHO REMOTO
                     remote_size = ftp.size(file)
     
-                    # 🔥 BAIXA O ARQUIVO
                     with open(local_file_path, 'wb') as f:
                         ftp.retrbinary(f"RETR {file}", f.write)
                     ftp.quit()
     
-                    # 🔥 VALIDA TAMANHO
                     local_size = os.path.getsize(local_file_path)
     
     
@@ -770,6 +767,17 @@ class Conversions:
             if result2.returncode != 0:
                 print(f"Erro convertendo DBF para CSV: {dbf_file_path}")
                 return
+
+            with open(csv_file_path, "rb") as f:
+                csv_bytes = f.read()
+            
+            csv_hash = hashlib.sha256(csv_bytes).hexdigest()
+            
+            raise ValueError(
+                f"CSV: {csv_file_name} | "
+                f"Bytes: {len(csv_bytes)} | "
+                f"SHA256: {csv_hash}"
+            )
     
             if path.exists(dbf_file_path):
                 os.remove(dbf_file_path)
