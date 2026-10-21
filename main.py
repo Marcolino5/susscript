@@ -695,7 +695,7 @@ class Conversions:
             print("No DBC files to convert.")
             return
     
-        with ThreadPoolExecutor(max_workers=ProjConfigs.N_OF_THREADS) as executor:
+        with ThreadPoolExecutor(max_workers=1) as executor:
             list(executor.map(Conversions.convert_file_to_csv, path_to_files))
 
     @staticmethod
@@ -780,17 +780,6 @@ class Conversions:
             if result2.returncode != 0:
                 print(f"Erro convertendo DBF para CSV: {dbf_file_path}")
                 return
-
-            with open(csv_file_path, "rb") as f:
-                csv_bytes = f.read()
-            
-            csv_hash = hashlib.sha256(csv_bytes).hexdigest()
-            
-            raise Exception (
-                f"CSV: {csv_file_name} | "
-                f"Bytes: {len(csv_bytes)} | "
-                f"SHA256: {csv_hash}"
-            )
     
             if path.exists(dbf_file_path):
                 os.remove(dbf_file_path)
