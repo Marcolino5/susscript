@@ -742,12 +742,24 @@ class Conversions:
     
             dbf_file_path = path.join(dbf_dir, dbf_file_name)
             csv_file_path = path.join(csv_dir, csv_file_name)
-    
+
+            free_before = shutil.disk_usage(dbf_dir).free
+            
             result1 = subprocess.run(
                 [ProjPaths.BLAST_DBF_PATH, file, dbf_file_path],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
+                capture_output=True,
+                text=True,
+                errors="replace"
             )
+
+            free_after = shutil.disk_usage(dbf_dir).free
+
+            print(f"Arquivo: {filename}", flush=True)
+            print(f"Return code: {result1.returncode}", flush=True)
+            print(f"STDERR: {result1.stderr}", flush=True)
+            print(f"STDOUT: {result1.stdout}", flush=True)
+            print(f"Disco antes: {free_before / 1024**2:.2f} MB livres", flush=True)
+            print(f"Disco depois: {free_after / 1024**2:.2f} MB livres", flush=True)
             
             if result1.returncode != 0:
                 raise Exception(f"DBC conversion failed: {file}")
@@ -1840,16 +1852,16 @@ def main():
         Tunep.load_tunep()
         LegacyMatcher.load_references()
 
-        #if (ProjParams.SYSTEM == 'SIA' or ProjParams.SYSTEM == 'BOTH'):
-        #    get_files('SIA')
+        if (ProjParams.SYSTEM == 'SIA' or ProjParams.SYSTEM == 'BOTH'):
+            get_files('SIA')
         if (ProjParams.SYSTEM == 'SIH' or ProjParams.SYSTEM == 'BOTH'):
             get_files('SIH')
 
         Conversions.convert_files()
 
         debug_disk("BEFORE UNITING/AFTER CONVERSION")
-        #if (ProjParams.SYSTEM == 'SIA' or ProjParams.SYSTEM == 'BOTH'):
-        #    Conversions.unite_files('SIA')
+        if (ProjParams.SYSTEM == 'SIA' or ProjParams.SYSTEM == 'BOTH'):
+            Conversions.unite_files('SIA')
         if (ProjParams.SYSTEM == 'SIH' or ProjParams.SYSTEM == 'BOTH'):
             Conversions.unite_files('SIH')
         debug_disk("AFTER UNITING")
