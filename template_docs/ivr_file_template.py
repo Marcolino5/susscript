@@ -80,7 +80,7 @@ YEAR_FOOTER = '''
 
 MONTH_HEADER = '''
 \\section{Resumo mensal}
-\\begin{longtable}[c]{|p{1.7cm}|p{2.6cm}|p{2.6cm}|p{2.3cm}|p{2.3cm}|p{2.3cm}|c|}
+\\begin{longtable}[c]{|p{1.3cm}|p{2.2cm}|p{2.5cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|p{2.0cm}|c|}
 	\\caption{Resumo mês a mês} \\\\ \\hline
 	\\textbf{Mês do Crédito} &
 	\\textbf{Valor original pago pelo SUS (R\$)} &
