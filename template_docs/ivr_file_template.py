@@ -17,7 +17,9 @@ DESCRICAO = '''
 \\section{{Descrição}}
 \\subsection{{0) PROCESSO}}
 \\begin{{itemize}}
-	\\item{{Número do processo: {numero_processo}}} 
+	\\item{{Número do processo: {numero_processo}}}
+	\\item{{Período de produção: {inicio_producao} a {fim_producao}}}
+    \\item{{Data-base do cálculo: {data_base}}}
 \\end{{itemize}}
 
 
