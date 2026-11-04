@@ -930,6 +930,7 @@ class Tunep:
     @staticmethod
     def get_description(code: str, system_type: str) -> str:
         if Tunep.TABELA_GERAL is not None and not Tunep.TABELA_GERAL.empty:
+            code_safe = str(code).strip().zfill(10)
             try:
                 row_geral = Tunep.TABELA_GERAL.loc[code_safe]
                 if isinstance(row_geral, pd.DataFrame):
