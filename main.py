@@ -1510,7 +1510,7 @@ class LatexBuilder:
                                             estado=ProjParams.STATE,
                                             numero_processo=ProjParams.NUMERO_PROCESSO,
                                             razao_social=ProjParams.RAZAO_SOCIAL,
-                                            nome_fantasia=ProjParams.NOME_FANTASIA
+                                            nome_fantasia=ProjParams.NOME_FANTASIA,
                                             inicio_producao=f"{ProjParams.START.month:02d}/{ProjParams.START.year:04d}",
                                             fim_producao=f"{ProjParams.END.month:02d}/{ProjParams.END.year:04d}",
                                             data_base=f"01/{ProjParams.END_INTEREST.month:02d}/{ProjParams.END_INTEREST.year:04d}")
