@@ -1538,7 +1538,7 @@ class LatexBuilder:
         # Padrão; Faz dados com correção monetária
         if (ProjParams.MODE == "DEFAULT"):
             for m in months:
-                table_body += f"{m.when} & {br_money(m.got)} & {br_money(m.debt_then())} & {(m.rates[0]*100)-100:.2f}\\% & {m.debt_now()/m.rates[1]:.2f} & {(m.rates[1]*100)-100:.2f}\\% & {br_money(m.debt_now())}"
+                table_body += f"{m.when} & {br_money(m.got)} & {br_money(m.debt_then())} & {(m.rates[0]*100)-100:.2f}\\% & {br_money(m.debt_now()/m.rates[1]:.2f)} & {(m.rates[1]*100)-100:.2f}\\% & {br_money(m.debt_now())}"
                 table_body += '\\\\ \\hline'
 
         # Mostra dados brutos; Só soma IVR padrão
