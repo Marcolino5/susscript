@@ -39,10 +39,86 @@ DESCRICAO = '''
 
 METODOLOGIA = '''
 \\section{Metodologia}
-Os dados utilizados na Quantificação e Qualificação dos procedimentos hospitalares/ambulatoriais do SUS foram extraídos diretamente das fontes oficiais disponibilizadas pelo próprio SUS, através de protocolo FTP nos endereços disponibilizados pelo SUS em suas plataformas, fazendo download e, posteriormente, importando em formato csv, com toda rastreabilidade e observância aos critérios de segurança da informação.
-Nossa metodologia, no cumprimento de sentença, permite quaisquer validações de origem e rastreabilidade das informações extraídas e utilizadas, concedendo, com isso, segurança e rastreabilidade ao número aqui apresentado.
-No cálculo de Atualização Monetária foram considerados os indicadores, conforme Resolução CJF N\\textsuperscript{o} 784/2022, de 08/08/22, publicada em 11/08/22, onde aprovou a alteração do Manual de Orientação de Procedimentos para os Cálculos na Justiça Federal (anexo à Resolução CJF N\\textsuperscript{o} 784/22), cuja orientação constante no Capítulo 4 (Liquidação de Sentença) é que, sendo devedora a Fazenda Pública em ações não tributárias, quanto às prestações devidas até dez/2021: a) o crédito será consolidado tendo por base o mês de dez./2021 pelos critérios de juros e correção monetária até então aplicáveis (definidos na Sentença); e b) sobre o valor consolidado do crédito em dez/2021 (principal corrigido + juros moratórios) incidirá a taxa Selic e partir de jan/2022) (\\S 1\\textsuperscript{o} do art. 22 da Resolução CNJ N\\textsuperscript{o} 303/2019, com redação dada pelo art. 6\\textsuperscript{o} da Resolução CNJ  N\\textsuperscript{o} 448/2022).
+
+\\subsection{Origem e obtenção dos dados}
+
+A presente quantificação foi elaborada com base nos registros públicos disponibilizados pelo Departamento de Informática do Sistema Único de Saúde (DATASUS), especialmente os dados de produção do Sistema de Informações Ambulatoriais (SIA/SUS) e do Sistema de Informações Hospitalares (SIH/SUS).
+
+Os arquivos foram obtidos dos repositórios oficiais do DATASUS, originalmente em formato DBC, e submetidos a processamento computacional para conversão, leitura, seleção e consolidação das informações necessárias à apuração dos valores.
+
+O levantamento compreende as competências mensais indicadas nos demonstrativos deste relatório, relativamente ao estabelecimento identificado pelo código CNES informado.
+
+\\subsection{Seleção e tratamento dos registros}
+
+A seleção dos registros considera o estabelecimento de saúde identificado pelo CNES, as competências abrangidas pela apuração e as fontes de produção utilizadas.
+
+Para os registros ambulatoriais provenientes dos arquivos PA do SIA/SUS, são utilizados os seguintes campos:
+
+\\begin{itemize}
+    \\item \\texttt{PA\\_CMP}: competência da produção;
+    \\item \\texttt{PA\\_PROC\\_ID}: código do procedimento;
+    \\item \\texttt{PA\\_QTDAPR}: quantidade aprovada;
+    \\item \\texttt{PA\\_VALAPR}: valor aprovado.
+\\end{itemize}
+
+Para os registros hospitalares provenientes dos arquivos SP do SIH/SUS, são utilizados:
+
+\\begin{itemize}
+    \\item \\texttt{SP\\_AA} e \\texttt{SP\\_MM}: ano e mês da competência;
+    \\item \\texttt{SP\\_ATOPROF}: código do procedimento;
+    \\item \\texttt{SP\\_QTD\\_ATO}: quantidade registrada;
+    \\item \\texttt{SP\\_VALATO}: valor registrado.
+\\end{itemize}
+
+Os registros apresentados no detalhamento dos procedimentos são consolidados por competência mensal e código de procedimento, mediante a soma das respectivas quantidades e valores.
+
+A ocorrência de um mesmo procedimento mais de uma vez na mesma competência não caracteriza, isoladamente, duplicidade indevida. Todas as ocorrências legítimas consideradas na apuração contribuem para os totais apresentados.
+
+\\subsection{Critério de apuração das diferenças}
+
+A apuração considera, para cada competência, os valores efetivamente registrados como pagos pelo SUS e os valores devidos segundo o critério IVR adotado no cálculo.
+
+A diferença devida e não paga corresponde à subtração do valor registrado como pago pelo SUS do valor devido calculado segundo o critério estabelecido.
+
+Os valores individuais são consolidados por competência mensal e, posteriormente, agrupados por ano, permitindo identificar a origem e a evolução dos montantes apresentados.
+
+\\subsection{Atualização monetária e juros}
+
+Sobre as diferenças devidas e não pagas são aplicados os fatores de atualização correspondentes aos períodos abrangidos pelo cálculo.
+
+Para os créditos anteriores a janeiro de 2022, considera-se o fator de atualização anterior à incidência da SELIC, conforme os critérios de correção monetária e juros adotados na apuração.
+
+O crédito consolidado até dezembro de 2021 é posteriormente submetido à incidência da taxa SELIC a partir de janeiro de 2022, observados os fatores acumulados até a data-base utilizada no cálculo.
+
+A metodologia de consolidação e posterior incidência da SELIC encontra referência na Resolução CJF n. 784/2022 e nas disposições da Resolução CNJ n. 303/2019, alterada pela Resolução CNJ n. 448/2022, sem prejuízo da observância do título judicial e das alterações normativas aplicáveis ao período calculado.
+
+A parcela de atualização anterior a janeiro de 2022 e o acréscimo decorrente da SELIC são apresentados separadamente em valores monetários, preservando-se o resultado da aplicação do fator total utilizado pelo sistema.
+
+Os demonstrativos mensais apresentam as taxas aplicadas, os respectivos acréscimos monetários e o valor atualizado de cada competência.
+
+\\subsection{Consolidação e apresentação dos resultados}
+
+Os valores apurados são apresentados em três níveis de consolidação:
+
+\\begin{itemize}
+    \\item \\textbf{Resumo total:} diferença devida e não paga, atualização e montante final;
+    \\item \\textbf{Resumo anual:} consolidação das diferenças e dos valores atualizados por exercício;
+    \\item \\textbf{Resumo mensal:} discriminação dos valores originais, taxas, parcelas de atualização e valores finais por competência.
+\\end{itemize}
+
+Adicionalmente, o relatório apresenta o detalhamento dos procedimentos, discriminando os códigos, descrições, quantidades, valores pagos, diferenças devidas e fontes identificadas.
+
+A apresentação consolidada não representa exclusão de ocorrências legítimas de um mesmo procedimento, mas sua agregação para facilitar a conferência dos resultados.
+
+\\subsection{Processamento computacional e reprodutibilidade}
+
+A extração, conversão e consolidação dos dados são realizadas mediante rotinas computacionais desenvolvidas em Python e C, com utilização de arquivos intermediários em formato DBF e CSV.
+
+A metodologia permite a reprodução dos cálculos a partir das mesmas bases de origem, dos critérios de seleção, dos parâmetros financeiros e da versão do processamento utilizados.
+
+A correspondência entre os registros de origem e os valores consolidados deve ser verificada mediante os arquivos e parâmetros efetivamente utilizados na execução.
 '''
+
 
 CONCLUSAO = '''
 \\section{{Conclusões}}
