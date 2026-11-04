@@ -89,7 +89,7 @@ class ProjPaths:
         ProjPaths.LATEX_FILE_PATH = path.join(ProjPaths.LATEX_DIR, "laudo.tex")
         ProjPaths.SIA_TUNEP_TABLE_PATH = path.join(ProjPaths.TABLES_DIR, "tabela_tunep_sia.csv")
         ProjPaths.SIH_TUNEP_TABLE_PATH = path.join(ProjPaths.TABLES_DIR, "tabela_tunep_sih.csv")
-        ProjPaths.PROC_TABLE_PATH = path.join(ProjPaths.TABLES_DIR, "desc_procedimento.csv")
+        ProjPaths.PROC_TABLE_PATH = path.join(ProjPaths.TABLES_DIR, "tabela_proc.csv")
 
 
     @staticmethod
@@ -892,9 +892,9 @@ class Tunep:
 
         try:
             # Lê apenas código e nome da tabela nova
-            geral_df = pd.read_csv(ProjPaths.PROC_TABLE_PATH, usecols=['CO_PROCEDIMENTO', 'NO_PROCEDIMENTO'], dtype=str)
-            geral_df['CO_PROCEDIMENTO'] = geral_df['CO_PROCEDIMENTO'].str.strip().str.zfill(10)
-            Tunep.TABELA_GERAL = geral_df.set_index('CO_PROCEDIMENTO').copy()
+            geral_df = pd.read_csv(ProjPaths.PROC_TABLE_PATH, usecols=['codigo', 'procedimento'], dtype=str)
+            geral_df['codigo'] = geral_df['codigo'].str.strip().str.zfill(10)
+            Tunep.TABELA_GERAL = geral_df.set_index('codigo').copy()
             print("Tabela geral de procedimentos carregada com sucesso.")
         except Exception as e:
             print(f"Aviso: Não foi possível carregar desc_procedimento.csv: {e}")
@@ -929,33 +929,16 @@ class Tunep:
 
     @staticmethod
     def get_description(code: str, system_type: str) -> str:
-        #Tenta nas tabelas antigas (SIA/SIH)
-        if system_type == 'Internação' or system_type == 'SIH': 
-            table = Tunep.TABELA_DE_CONVERSAO_SIH
-        else: 
-            table = Tunep.TABELA_DE_CONVERSAO_SIA
-        
-        code_safe = str(code).strip().zfill(10)
-
-        try:
-            #Tenta buscar na tabela principal
-            row = table.loc[code_safe]
-            if isinstance(row, pd.DataFrame):
-                return str(row['Descricao'].iloc[0])
-            return str(row['Descricao'])
+        if Tunep.TABELA_GERAL is not None and not Tunep.TABELA_GERAL.empty:
+            try:
+                row_geral = Tunep.TABELA_GERAL.loc[code_safe]
+                if isinstance(row_geral, pd.DataFrame):
+                    return str(row_geral['procedimento'].iloc[0])
+                return str(row_geral['procedimento'])
+            except:
+                pass # Falhou nas duas
             
-        except:
-            #Se falhar, tenta na TABELA GERAL
-            if Tunep.TABELA_GERAL is not None and not Tunep.TABELA_GERAL.empty:
-                try:
-                    row_geral = Tunep.TABELA_GERAL.loc[code_safe]
-                    if isinstance(row_geral, pd.DataFrame):
-                        return str(row_geral['NO_PROCEDIMENTO'].iloc[0])
-                    return str(row_geral['NO_PROCEDIMENTO'])
-                except:
-                    pass # Falhou nas duas
-            
-            return "Descrição não encontrada"
+        return "Descrição não encontrada"
 
 class MonthInfo:
     def __init__(self, when: Date, method: str, src: str, expected: float, got: float, rates: tuple[float, float, float], procedimentos: list = None) -> None:
@@ -1626,7 +1609,6 @@ class LatexBuilder:
         
         total_linhas_processadas = 0
 
-        # 🔹 First pass: aggregate procedures
         aggregated = {}  # (month, code) -> accumulator dict
         
         for m in months:
@@ -1667,7 +1649,6 @@ class LatexBuilder:
                 aggregated[key]["due"] += due
 
 
-        # 🔹 Second pass: generate LaTeX from grouped data
         for data in aggregated.values():
         
             descricao = Tunep.get_description(data["code"], data["tipo"])
