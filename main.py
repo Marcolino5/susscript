@@ -1576,8 +1576,6 @@ class LatexBuilder:
     
     @staticmethod
     def build_detailed_latex_table(months: list[MonthInfo]) -> str:
-        # Layout Novo (Sem Tipo):
-        # Mês:1.5 | Cód:2.0 | Descrição:7.5 (Aumentou!) | Qtd:1.0 | Pago:2.5 | Devido:2.5
         latex = r"""
         \newpage
         \section{Detalhamento dos Procedimentos}
@@ -1682,6 +1680,11 @@ class LatexBuilder:
         """
         
         print(f"DEBUG LATEX: Tabela gerada com um total de {total_linhas_processadas} linhas.")
+        return latex
+
+    @staticmethod
+    def build_audit_latex_table(audit_info) -> str:
+        latex = r""" """"
         return latex
 
 
