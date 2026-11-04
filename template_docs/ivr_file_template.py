@@ -86,6 +86,7 @@ MONTH_HEADER = '''
 	\\textbf{Valor original pago pelo SUS (R\$)} &
 	\\textbf{Diferença devida e não paga (R\$)} &
 	\\textbf{Atualização antes de 01/2022} &
+	\\textbf{Valor pré-Selic (R\$)} &
 	\\textbf{Selic a partir de 01/2022} &
 	\\textbf{Valor total devido (R\$)}
 	\\endhead \\hline
