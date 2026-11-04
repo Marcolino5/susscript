@@ -1687,7 +1687,7 @@ class LatexBuilder:
 
     @staticmethod
     def build_audit_latex_table(audit_info) -> str:
-        latex = r""" """"
+        latex = ""
         return latex
 
 
