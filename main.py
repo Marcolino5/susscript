@@ -1820,6 +1820,10 @@ def main():
     ProjPaths.test()
     ProjParams.init()
     ProjParams.test()
+
+    # salva período definido inicialmente
+    periodo_inicio = ProjParams.START
+    periodo_fim = ProjParams.END
     
     for period in periods:
         ProjParams.set_start_date(period[0])
@@ -1849,6 +1853,11 @@ def main():
         months += Processing.months(sia_files, sih_files, ProjParams.METHOD)
         ProjPaths.empty_dirs()
         ProjPaths.create_paths()
+
+    # retorna ao período inicial p/ geração do laudo
+    ProjParams.set_start_date(periodo_inicio)
+    ProjParams.set_end_date(periodo_fim)
+    
     years = Processing.year_results(months)
     total = Processing.total_result(months)
 
