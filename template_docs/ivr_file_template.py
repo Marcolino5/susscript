@@ -2,7 +2,9 @@ FILE_HEADER = '''
 \\documentclass{report}
 \\usepackage{longtable}
 \\usepackage[margin=1.0cm]{geometry}
+\\setlength{\\footskip}{0.5cm}
 \\usepackage{url}
+\\setlength{\\parindent}{0pt}
 
 \\title{Laudo Quantitativo}
 \\author{}
@@ -44,21 +46,17 @@ DESCRICAO = '''
 METODOLOGIA = '''
 \\section{Metodologia}
 
-\\subsection{Origem e obtenção dos dados}
-
-A presente quantificação foi elaborada com base nos registros públicos disponibilizados pelo Departamento de Informática do Sistema Único de Saúde (DATASUS), especialmente os dados de produção do Sistema de Informações Ambulatoriais (SIA/SUS) e do Sistema de Informações Hospitalares (SIH/SUS).
-
-Os arquivos foram obtidos dos repositórios oficiais do DATASUS, originalmente em formato DBC, e submetidos a processamento computacional para conversão, leitura, seleção e consolidação das informações necessárias à apuração dos valores.
-
-O levantamento compreende as competências mensais indicadas nos demonstrativos deste relatório, relativamente ao estabelecimento identificado pelo código CNES informado.
 
 \\subsection{Seleção e tratamento dos registros}
 
 A seleção dos registros considera o estabelecimento de saúde identificado pelo CNES, as competências abrangidas pela apuração e as fontes de produção utilizadas.
 
+O filtro por CNES é aplicado durante a conversão dos arquivos DBF para CSV, mediante comparação entre o código CNES do estabelecimento analisado e o código registrado em cada ocorrência. Nos arquivos PA do SIA/SUS, utiliza-se o campo \\texttt{PA\\_CODUNI}; nos arquivos SP do SIH/SUS, utiliza-se o campo \\texttt{SP\\_CNES}. Quando aplicado esse filtro, somente os registros correspondentes ao estabelecimento identificado são incluídos nos arquivos CSV destinados à apuração.
+
 Para os registros ambulatoriais provenientes dos arquivos PA do SIA/SUS, são utilizados os seguintes campos:
 
 \\begin{itemize}
+    \\item \\texttt{PA\\_CODUNI}: código CNES do estabelecimento;
     \\item \\texttt{PA\\_CMP}: competência da produção;
     \\item \\texttt{PA\\_PROC\\_ID}: código do procedimento;
     \\item \\texttt{PA\\_QTDAPR}: quantidade aprovada;
@@ -68,6 +66,7 @@ Para os registros ambulatoriais provenientes dos arquivos PA do SIA/SUS, são ut
 Para os registros hospitalares provenientes dos arquivos SP do SIH/SUS, são utilizados:
 
 \\begin{itemize}
+    \\item \\texttt{SP\\_CNES}: código CNES do estabelecimento;
     \\item \\texttt{SP\\_AA} e \\texttt{SP\\_MM}: ano e mês da competência;
     \\item \\texttt{SP\\_ATOPROF}: código do procedimento;
     \\item \\texttt{SP\\_QTD\\_ATO}: quantidade registrada;
