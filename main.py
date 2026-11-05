@@ -403,6 +403,7 @@ class ProjParams:
             ProjParams.NOME_FANTASIA = sys.argv[12]
             ProjParams.NUMERO_PROCESSO = sys.argv[13]
             ProjParams.MODE = sys.argv[14]
+            ProjParams.load_cnpj()
             return
         
         if sys.argv[1] == 'raw':
@@ -412,6 +413,7 @@ class ProjParams:
             ProjParams.SYSTEM = "BOTH"
             ProjParams.START = Date.from_string(sys.argv[5])
             ProjParams.END = Date.from_string(sys.argv[6])
+            ProjParams.load_cnpj()
             return
 
         ProjParams.CNES = sys.argv[1]
@@ -427,14 +429,31 @@ class ProjParams:
         ProjParams.NOME_FANTASIA = sys.argv[11]
         ProjParams.NUMERO_PROCESSO = sys.argv[12]
         ProjParams.MODE = sys.argv[13]
+        ProjParams.load_cnpj()
 
         # Verifica se temos o 15º argumento (o CNPJ)
         if len(sys.argv) > 14:
             ProjParams.CNPJ = sys.argv[14]
             print(f"DEBUG: CNPJ CAPTURADO COM SUCESSO: {ProjParams.CNPJ}")
 
+    # Consegue CNPJ a partir do CNES, não obrigatório (depende de mais uma API externa do governo)
     @staticmethod
-
+    def load_cnpj():
+        url = f"https://apidadosabertos.saude.gov.br/cnes/estabelecimentos/{ProjParams.CNES}"
+        try:
+            response = requests.get(url, timeout=15)
+            response.raise_for_status()
+            dados = response.json()
+            if "numero_cnpj" not in dados:
+                dados = dados.get("data", dados.get("estabelecimento", dados))
+            cnpj = dados.get("numero_cnpj")
+            if not cnpj:
+                print ("CNPJ não encontrado para o CNES informado.")
+            cnpj = str(cnpj).strip().zfill(14)
+            ProjParams.CNPJ = cnpj
+        except (requests.RequestException, ValueError, AttributeError, TypeError) as e:
+            print(f"Erro ao consultar CNPJ do CNES {ProjParams.CNES}: {e}") from e
+        
     @staticmethod
     def get_start_date():
         return ProjParams.START
@@ -1511,6 +1530,7 @@ class LatexBuilder:
                                             numero_processo=ProjParams.NUMERO_PROCESSO,
                                             razao_social=ProjParams.RAZAO_SOCIAL,
                                             nome_fantasia=ProjParams.NOME_FANTASIA,
+                                            cnpj=f"\\item{{CNPJ: {ProjParams.CNPJ}}}" if ProjParams.CNPJ else "",
                                             inicio_producao=f"{ProjParams.START.month:02d}/{ProjParams.START.year:04d}",
                                             fim_producao=f"{ProjParams.END.month:02d}/{ProjParams.END.year:04d}",
                                             data_base=f"01/{ProjParams.END_INTEREST.month:02d}/{ProjParams.END_INTEREST.year:04d}")
