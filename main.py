@@ -1694,7 +1694,7 @@ class LatexBuilder:
         
             descricao = Tunep.get_description(data["code"], data["tipo"])
             descricao = descricao.replace('&', '\\&').replace('%', '\\%').replace('_', '\\_')
-            source = ", ".join(sorted(map(str, data["sources"])))
+            source = ", ".join(sorted(map(str, data["source"])))
             source = (
                 source
                 .replace('\\', '\\textbackslash{}')
