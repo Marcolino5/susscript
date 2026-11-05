@@ -452,7 +452,7 @@ class ProjParams:
             cnpj = str(cnpj).strip().zfill(14)
             ProjParams.CNPJ = cnpj
         except (requests.RequestException, ValueError, AttributeError, TypeError) as e:
-            print(f"Erro ao consultar CNPJ do CNES {ProjParams.CNES}: {e}") from e
+            print(f"Erro ao consultar CNPJ do CNES {ProjParams.CNES}: {e}")
         
     @staticmethod
     def get_start_date():
