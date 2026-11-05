@@ -1526,7 +1526,7 @@ class CsvBuilder:
 
 class LatexBuilder:
     @staticmethod
-    def build_latex_file(months: list[MonthInfo], years: list[YearInfo], report: TotalInfo, method: str):
+    def build_latex_file(months: list[MonthInfo], years: list[YearInfo], report: TotalInfo, method: str, download_info: list = None):
         METHOD_TEMPLATE = {
             'IVR': ivr_file_template,
             'TUNEP': tunep_file_template,
@@ -1563,6 +1563,8 @@ class LatexBuilder:
 
         result += LatexBuilder.build_detailed_latex_table(months)
 
+        result += LatexBuilder.build_audit_latex_table(download_Info)
+        
         result += template.FILE_FOOTER
 
         f = open(ProjPaths.LATEX_FILE_PATH, 'w')
@@ -1723,7 +1725,52 @@ class LatexBuilder:
 
     @staticmethod
     def build_audit_latex_table(audit_info) -> str:
-        latex = ""
+        latex = '''
+        \\newpage
+        \\section{Rastreabilidade dos Arquivos de Origem}
+    
+        Os arquivos de produção foram obtidos diretamente do servidor FTP
+        do DATASUS. Para cada arquivo baixado, são apresentados o endereço
+        de origem, a data de obtenção, o tamanho e o hash SHA-256 calculado
+        sobre o arquivo DBC original.
+    
+        \\begingroup
+        \\footnotesize
+        \\setlength{\\tabcolsep}{4pt}
+    
+        \\begin{longtable}{|p{3cm}|p{13cm}|}
+        \\caption{Identificação e integridade dos arquivos DBC} \\\\ \\hline
+    
+        \\textbf{Informação} & \\textbf{Registro} \\\\ \\hline
+        \\endfirsthead
+    
+        \\hline
+        \\textbf{Informação} & \\textbf{Registro} \\\\ \\hline
+        \\endhead
+        '''
+    
+        for item in download_info:
+            nome = item["arquivo"].replace("_", "\\_")
+            url = item["url"]
+            data = item["data_download_utc"]
+            tamanho = item["tamanho_bytes"]
+            sha = item["sha256"]
+    
+            latex += f"Arquivo & \\texttt{{{nome}}} \\\\ \\hline\n"
+            latex += f"Endereço FTP & \\url{{{url}}} \\\\ \\hline\n"
+            latex += f"Download (UTC) & {data} \\\\ \\hline\n"
+            latex += f"Tamanho & {tamanho:,} bytes \\\\ \\hline\n"
+            latex += f"SHA-256 & \\texttt{{{sha[:32]}}}\\newline\\texttt{{{sha[32:]}}} \\\\ \\hline\n"
+            latex += "\\hline\n"
+    
+        if not download_info:
+            latex += "Downloads & Nenhum download registrado nesta execução. \\\\ \\hline\n"
+    
+        latex += '''
+        \\end{longtable}
+        \\endgroup
+        '''
+    
         return latex
 
 
@@ -1900,7 +1947,7 @@ def main():
     years = Processing.year_results(months)
     total = Processing.total_result(months)
 
-    LatexBuilder.build_latex_file(months, years, total, ProjParams.METHOD)
+    LatexBuilder.build_latex_file(months, years, total, ProjParams.METHOD, download_info)
     PdfBuilder.write_pdf(path.join(ProjPaths.RESULTS_DIR, 'laudo.pdf'))
 
 if __name__ == '__main__':
