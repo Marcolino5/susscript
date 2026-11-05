@@ -1687,7 +1687,7 @@ class LatexBuilder:
                 aggregated[key]["qtd"] += qtd
                 aggregated[key]["paid"] += paid
                 aggregated[key]["due"] += due
-                aggregated[key]["sources"].add(fonte)
+                aggregated[key]["source"].add(fonte)
 
 
         for data in aggregated.values():
