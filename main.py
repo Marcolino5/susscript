@@ -1563,7 +1563,7 @@ class LatexBuilder:
 
         result += LatexBuilder.build_detailed_latex_table(months)
 
-        result += LatexBuilder.build_audit_latex_table(download_Info)
+        result += LatexBuilder.build_audit_latex_table(download_info)
         
         result += template.FILE_FOOTER
 
