@@ -588,82 +588,74 @@ class Downloads:
     @staticmethod
     def download(files: list[str]):
         n_workers = ProjConfigs.N_OF_THREADS
+    
+        # divide arquivos igualmente entre as threads
         chunk_size = max(1, math.ceil(len(files) / n_workers))
+    
         chunks = [
             files[i:i + chunk_size]
             for i in range(0, len(files), chunk_size)
         ]
+    
         with ThreadPoolExecutor(max_workers=n_workers) as executor:
             results = list(executor.map(Downloads.download_many, chunks))
-        return [item for chunk in results for item in chunk]
 
+        return [item for chunk in results for item in chunk]
 
     @staticmethod
     def download_many(files: list[str]):
+        metadata = []
         PREFIX_LOCATION = {
             'PA': ProjPaths.SIA_DOWNLOAD_DIR,
             'SP': ProjPaths.SIH_DOWNLOAD_DIR
         }
-    
-        metadata = []
     
         for file in files:
             file_name = path.split(file)[-1]
             file_prefix = file_name[:2]
             download_dir = PREFIX_LOCATION[file_prefix]
             local_file_path = path.join(download_dir, file_name)
-            temp_file_path = local_file_path + ".part"
     
             for attempt in range(3):
-                ftp = None
                 try:
                     ftp = FTP("ftp.datasus.gov.br")
                     ftp.login()
-                    ftp.voidcmd("TYPE I")
     
                     remote_size = ftp.size(file)
-                    sha256 = hashlib.sha256()
-                    with open(temp_file_path, 'wb') as f:
-                        def write_chunk(chunk):
-                            f.write(chunk)
-                            sha256.update(chunk)
-                        ftp.retrbinary(f"RETR {file}", write_chunk)
-                    local_size = os.path.getsize(temp_file_path)
+    
+                    with open(local_file_path, 'wb') as f:
+                        ftp.retrbinary(f"RETR {file}", f.write)
+                    ftp.quit()
+    
+                    local_size = os.path.getsize(local_file_path)
     
                     if remote_size is not None and local_size != remote_size:
-                        raise Exception(f"Size mismatch: {file_name}")
-                    os.replace(temp_file_path, local_file_path)
-    
+                        print(f"[WARN] Size mismatch (tentativa {attempt+1}): {file_name}")
+                        time.sleep(1)
+                        continue  # tenta de novo
+
+                    with open(local_file_path, 'rb') as f:
+                        sha256 = hashlib.file_digest(f, 'sha256').hexdigest()
+                    
                     metadata.append({
                         "arquivo": file_name,
                         "url": f"ftp://ftp.datasus.gov.br{file}",
                         "data_download_utc": datetime.datetime.now(
                             datetime.timezone.utc
-                        ).strftime("%d/%m/%Y %H:%M:%S"),
+                        ).isoformat(timespec="seconds"),
                         "tamanho_bytes": local_size,
-                        "sha256": sha256.hexdigest()
+                        "sha256": sha256
                     })
-    
+                    
                     print(f"Downloaded {file_name}")
-                    break
+                    break  # sucesso
     
                 except Exception as e:
                     print(f"[ERROR] tentativa {attempt+1} falhou para {file_name}: {e}")
-    
-                    if os.path.exists(temp_file_path):
-                        os.remove(temp_file_path)
-    
-                    if attempt == 2:
-                        raise Exception(f"Falha definitiva ao baixar {file_name}") from e
-    
                     time.sleep(1)
     
-                finally:
-                    if ftp is not None:
-                        try:
-                            ftp.quit()
-                        except Exception:
-                            ftp.close()
+                    if attempt == 2:
+                        raise Exception(f"Falha definitiva ao baixar {file_name}")
         return metadata
 
     @staticmethod
