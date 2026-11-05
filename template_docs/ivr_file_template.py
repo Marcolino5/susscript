@@ -28,8 +28,9 @@ DESCRICAO = '''
 	\\item{{Razão social: {razao_social}}} 
 	\\item{{Nome fantasia: {nome_fantasia}}}
 	\\item{{Código CNES: {cnes}}}
+	{cnpj}
 	\\item{{UF: {estado}}} 
-	\\item{{Cidade: {cidade}}} 
+	\\item{{Cidade: {cidade}}}
 \\end{{itemize}}
 
 
