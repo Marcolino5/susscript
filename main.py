@@ -379,6 +379,7 @@ class ProjParams:
     END: Date = Date(12, 2023)
     END_INTEREST: Date = Date(4, 2025)
     DATA_CIACAO: Date = Date(4, 2025)
+    DATA_DISTRIBUICAO: Date = Date(4, 2025)
     CIDADE: str = "CITY"
     RAZAO_SOCIAL: str = "Razão Social"
     NOME_FANTASIA: str = "Nome Fantasia"
@@ -403,6 +404,7 @@ class ProjParams:
             ProjParams.NOME_FANTASIA = sys.argv[12]
             ProjParams.NUMERO_PROCESSO = sys.argv[13]
             ProjParams.MODE = sys.argv[14]
+            ProjParams.DATA_DISTRIBUICAO = sys.argv[15]
             ProjParams.load_cnpj()
             return
         
@@ -429,6 +431,7 @@ class ProjParams:
         ProjParams.NOME_FANTASIA = sys.argv[11]
         ProjParams.NUMERO_PROCESSO = sys.argv[12]
         ProjParams.MODE = sys.argv[13]
+        ProjParams.DATA_DISTRIBUICAO = sys.argv[14]
         ProjParams.load_cnpj()
 
         # Verifica se temos o 15º argumento (o CNPJ)
@@ -1549,7 +1552,8 @@ class LatexBuilder:
                                             inicio_producao=f"{ProjParams.START.month:02d}/{ProjParams.START.year:04d}",
                                             fim_producao=f"{ProjParams.END.month:02d}/{ProjParams.END.year:04d}",
                                             data_base=f"01/{ProjParams.END_INTEREST.month:02d}/{ProjParams.END_INTEREST.year:04d}",
-                                            data_citacao=f"{ProjParams.DATA_CIACAO.month:02d}/{ProjParams.DATA_CIACAO.year:04d}")
+                                            data_citacao=f"{ProjParams.DATA_CIACAO.month:02d}/{ProjParams.DATA_CIACAO.year:04d}",
+                                            data_distribuicao=f"{ProjParams.DATA_DISTRIBUICAO.month:02d}/{ProjParams.DATA_DISTRIBUICAO.year:04d}")
         
         result += template.METODOLOGIA
         
