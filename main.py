@@ -451,6 +451,7 @@ class ProjParams:
             if not cnpj:
                 print ("CNPJ não encontrado para o CNES informado.")
             cnpj = str(cnpj).strip().zfill(14)
+            cnpj = f"{cnpj[:2]}.{cnpj[2:5]}.{cnpj[5:8]}/{cnpj[8:12]}-{cnpj[12:]}"
             ProjParams.CNPJ = cnpj
         except (requests.RequestException, ValueError, AttributeError, TypeError) as e:
             print(f"Erro ao consultar CNPJ do CNES {ProjParams.CNES}: {e}")
