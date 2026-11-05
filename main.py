@@ -14,6 +14,7 @@ import sys
 import os
 import time
 import math
+import requests
 import hashlib
 
 SIA_RELEVANT_FIELDS = np.array(['PA_CMP', 'PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR'])
