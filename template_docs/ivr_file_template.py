@@ -23,7 +23,6 @@ DESCRICAO = '''
 	\\item{{Número do processo: {numero_processo}}}
 	\\item{{Período de produção: {inicio_producao} a {fim_producao}}}
     \\item{{Data-base do cálculo: {data_base}}}
-	\\item{{Data de distribuição: {data_distribuicao}}}
 	\\item{{Data de citação: {data_citacao}}}
 \\end{{itemize}}
 
