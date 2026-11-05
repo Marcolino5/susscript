@@ -1723,31 +1723,32 @@ class LatexBuilder:
         print(f"DEBUG LATEX: Tabela gerada com um total de {total_linhas_processadas} linhas.")
         return latex
 
+    
     @staticmethod
     def build_audit_latex_table(download_info) -> str:
-        latex = '''
-        \\newpage
-        \\section{Rastreabilidade dos Arquivos de Origem}
+        latex = r"""
+        \newpage
+        \section{Rastreabilidade dos Arquivos de Origem}
     
         Os arquivos de produção foram obtidos diretamente do servidor FTP
         do DATASUS. Para cada arquivo baixado, são apresentados o endereço
         de origem, a data de obtenção, o tamanho e o hash SHA-256 calculado
         sobre o arquivo DBC original.
     
-        \\begingroup
-        \\footnotesize
-        \\setlength{\\tabcolsep}{4pt}
+        \begingroup
+        \footnotesize
+        \setlength{\tabcolsep}{4pt}
     
-        \\begin{longtable}{|p{3cm}|p{13cm}|}
-        \\caption{Identificação e integridade dos arquivos DBC} \\\\ \\hline
+        \begin{longtable}[c]{|p{3cm}|p{13cm}|}
+        \caption{Identificação e integridade dos arquivos DBC} \\ \hline
     
-        \\textbf{Informação} & \\textbf{Registro} \\\\ \\hline
-        \\endfirsthead
+        \textbf{Informação} & \textbf{Registro} \\ \hline
+        \endfirsthead
     
-        \\hline
-        \\textbf{Informação} & \\textbf{Registro} \\\\ \\hline
-        \\endhead
-        '''
+        \hline
+        \textbf{Informação} & \textbf{Registro} \\ \hline
+        \endhead
+        """
     
         for item in download_info:
             nome = item["arquivo"].replace("_", "\\_")
@@ -1766,12 +1767,13 @@ class LatexBuilder:
         if not download_info:
             latex += "Downloads & Nenhum download registrado nesta execução. \\\\ \\hline\n"
     
-        latex += '''
-        \\end{longtable}
-        \\endgroup
-        '''
+        latex += r"""
+        \end{longtable}
+        \endgroup
+        """
     
         return latex
+
 
 
 class PdfBuilder:
