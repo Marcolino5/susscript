@@ -1526,7 +1526,7 @@ class CsvBuilder:
 
 class LatexBuilder:
     @staticmethod
-    def build_latex_file(months: list[MonthInfo], years: list[YearInfo], report: TotalInfo, method: str, download_info: list = None):
+    def build_latex_file(months: list[MonthInfo], years: list[YearInfo], report: TotalInfo, method: str, download_info: list):
         METHOD_TEMPLATE = {
             'IVR': ivr_file_template,
             'TUNEP': tunep_file_template,
@@ -1724,7 +1724,7 @@ class LatexBuilder:
         return latex
 
     @staticmethod
-    def build_audit_latex_table(audit_info) -> str:
+    def build_audit_latex_table(download_info) -> str:
         latex = '''
         \\newpage
         \\section{Rastreabilidade dos Arquivos de Origem}
