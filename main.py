@@ -1548,8 +1548,8 @@ class LatexBuilder:
                                             cnpj=f"\\item{{CNPJ: {ProjParams.CNPJ}}}" if ProjParams.CNPJ else "",
                                             inicio_producao=f"{ProjParams.START.month:02d}/{ProjParams.START.year:04d}",
                                             fim_producao=f"{ProjParams.END.month:02d}/{ProjParams.END.year:04d}",
-                                            data_base=f"01/{ProjParams.END_INTEREST.month:02d}/{ProjParams.END_INTEREST.year:04d}"
-                                            data_citacao=f"{ProjParams.DATA_CIACAO.month:02d}/{ProjParams.DATA_CIACAO.year:04d})
+                                            data_base=f"01/{ProjParams.END_INTEREST.month:02d}/{ProjParams.END_INTEREST.year:04d}",
+                                            data_citacao=f"{ProjParams.DATA_CIACAO.month:02d}/{ProjParams.DATA_CIACAO.year:04d}")
         
         result += template.METODOLOGIA
         
