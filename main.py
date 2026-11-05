@@ -388,12 +388,11 @@ class ProjParams:
 
     @staticmethod
     def init():
-        # Solução temporária, gambiarra; Mudar. SYSTEM deve ser argv[4]
         if sys.argv[1] == 'test':
             ProjParams.METHOD = 'TEST'
             ProjParams.CNES = sys.argv[2]
             ProjParams.STATE = sys.argv[3]
-            ProjParams.SYSTEM = "BOTH"
+            ProjParams.SYSTEM = sys.argv[4]
             ProjParams.METHOD = sys.argv[5]
             ProjParams.START = Date.from_string(sys.argv[6])
             ProjParams.END = Date.from_string(sys.argv[7])
@@ -411,7 +410,7 @@ class ProjParams:
             ProjParams.METHOD = 'RAW'
             ProjParams.CNES = sys.argv[2]
             ProjParams.STATE = sys.argv[3]
-            ProjParams.SYSTEM = "BOTH"
+            ProjParams.SYSTEM = sys.argv[4]
             ProjParams.START = Date.from_string(sys.argv[5])
             ProjParams.END = Date.from_string(sys.argv[6])
             ProjParams.load_cnpj()
@@ -419,7 +418,7 @@ class ProjParams:
 
         ProjParams.CNES = sys.argv[1]
         ProjParams.STATE = sys.argv[2]
-        ProjParams.SYSTEM = "BOTH"
+        ProjParams.SYSTEM = sys.argv[3]
         ProjParams.METHOD = sys.argv[4]
         ProjParams.START = Date.from_string(sys.argv[5])
         ProjParams.END = Date.from_string(sys.argv[6])
