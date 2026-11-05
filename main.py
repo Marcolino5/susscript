@@ -1681,19 +1681,20 @@ class LatexBuilder:
                         "qtd": 0,
                         "paid": 0.0,
                         "due": 0.0,
-                        "source": fonte,
+                        "source": set(),
                     }
         
                 aggregated[key]["qtd"] += qtd
                 aggregated[key]["paid"] += paid
                 aggregated[key]["due"] += due
+                aggregated[key]["sources"].add(fonte)
 
 
         for data in aggregated.values():
         
             descricao = Tunep.get_description(data["code"], data["tipo"])
             descricao = descricao.replace('&', '\\&').replace('%', '\\%').replace('_', '\\_')
-            source = str(data["source"])
+            source = ", ".join(sorted(map(str, data["sources"])))
             source = (
                 source
                 .replace('\\', '\\textbackslash{}')
@@ -1749,6 +1750,15 @@ class LatexBuilder:
         \textbf{Informação} & \textbf{Registro} \\ \hline
         \endhead
         """
+
+        try:
+            with open("/app/SUSD_COMMIT", "r") as f:
+                versao = f.read().strip()
+        except OSError:
+            versao = "Não disponível"
+        
+        latex += f"Versão do código & \\texttt{{{versao}}} \\\\ \\hline\n"
+
     
         for item in download_info:
             nome = item["arquivo"].replace("_", "\\_")
