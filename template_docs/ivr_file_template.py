@@ -45,6 +45,7 @@ DESCRICAO = '''
 \\end{{itemize}}
 '''
 
+
 METODOLOGIA = '''
 \\section{Metodologia}
 
@@ -53,9 +54,9 @@ METODOLOGIA = '''
 
 A seleção dos registros considera o estabelecimento de saúde identificado pelo CNES, as competências abrangidas pela apuração e as fontes de produção utilizadas.
 
-O filtro por CNES é aplicado durante a conversão dos arquivos DBF para CSV, mediante comparação entre o código CNES do estabelecimento analisado e o código registrado em cada ocorrência. Nos arquivos PA do SIA/SUS, utiliza-se o campo \\texttt{PA\\_CODUNI}; nos arquivos SP do SIH/SUS, utiliza-se o campo \\texttt{SP\\_CNES}. Quando aplicado esse filtro, somente os registros correspondentes ao estabelecimento identificado são incluídos nos arquivos CSV destinados à apuração.
+O filtro por CNES é aplicado durante a conversão dos arquivos DBF para CSV, mediante comparação entre o código CNES do estabelecimento analisado e o código registrado em cada ocorrência. Nos arquivos PA do SIA/SUS, utiliza-se o campo \\texttt{PA\\_CODUNI}; nos arquivos RD do SIH/SUS, utiliza-se o campo \\texttt{CNES}. Quando aplicado esse filtro, somente os registros correspondentes ao estabelecimento identificado são incluídos nos arquivos CSV destinados à apuração.
 
-Para os registros ambulatoriais provenientes dos arquivos PA do SIA/SUS, são utilizados os seguintes campos:
+Para os registros ambulatoriais provenientes dos arquivos PA (Produção Ambulatorial) do SIA/SUS, são utilizados os seguintes campos:
 
 \\begin{itemize}
     \\item \\texttt{PA\\_CODUNI}: código CNES do estabelecimento;
@@ -65,15 +66,18 @@ Para os registros ambulatoriais provenientes dos arquivos PA do SIA/SUS, são ut
     \\item \\texttt{PA\\_VALAPR}: valor aprovado.
 \\end{itemize}
 
-Para os registros hospitalares provenientes dos arquivos SP do SIH/SUS, são utilizados:
+Para os registros hospitalares provenientes dos arquivos RD (AIH Reduzida) do SIH/SUS, que contêm informações consolidadas das Autorizações de Internação Hospitalar (AIH), são utilizados os seguintes campos:
 
 \\begin{itemize}
-    \\item \\texttt{SP\\_CNES}: código CNES do estabelecimento;
-    \\item \\texttt{SP\\_AA} e \\texttt{SP\\_MM}: ano e mês da competência;
-    \\item \\texttt{SP\\_ATOPROF}: código do procedimento;
-    \\item \\texttt{SP\\_QTD\\_ATO}: quantidade registrada;
-    \\item \\texttt{SP\\_VALATO}: valor registrado.
+    \\item \\texttt{CNES}: código CNES do estabelecimento;
+    \\item \\texttt{ANO\\_CMPT} e \\texttt{MES\\_CMPT}: ano e mês da competência de processamento;
+    \\item \\texttt{PROC\\_REA}: código do procedimento principal realizado;
+    \\item \\texttt{VAL\\_TOT}: valor total registrado para a AIH.
 \\end{itemize}
+
+Nos arquivos PA, a quantidade considerada corresponde ao campo \\texttt{PA\\_QTDAPR}. Nos arquivos RD, cada registro de AIH é contabilizado como uma unidade associada ao procedimento principal informado em \\texttt{PROC\\_REA}, sendo a quantidade obtida pela contagem desses registros. Essa contagem não representa necessariamente o número de internações distintas, uma vez que podem existir registros de continuidade de AIH.
+
+Para os registros hospitalares, o valor utilizado na apuração corresponde ao valor total da AIH, informado em \\texttt{VAL\\_TOT}, e não ao valor individual de atos profissionais. Dessa forma, a apuração considera a remuneração registrada para cada AIH, associada ao respectivo procedimento principal.
 
 Os registros apresentados no detalhamento dos procedimentos são consolidados por competência mensal e código de procedimento, mediante a soma das respectivas quantidades e valores.
 
@@ -82,6 +86,8 @@ A ocorrência de um mesmo procedimento mais de uma vez na mesma competência nã
 \\subsection{Critério de apuração das diferenças}
 
 A apuração considera, para cada competência, os valores efetivamente registrados como pagos pelo SUS e os valores devidos segundo o critério IVR adotado no cálculo.
+
+O valor devido é obtido mediante a aplicação do fator de 1,5 sobre o valor registrado, utilizando-se o campo \\texttt{PA\\_VALAPR} para os procedimentos ambulatoriais e o campo \\texttt{VAL\\_TOT} para os registros hospitalares.
 
 A diferença devida e não paga corresponde à subtração do valor registrado como pago pelo SUS do valor devido calculado segundo o critério estabelecido.
 
@@ -123,7 +129,6 @@ A metodologia permite a reprodução dos cálculos a partir das mesmas bases de 
 
 A correspondência entre os registros de origem e os valores consolidados deve ser verificada mediante os arquivos e parâmetros efetivamente utilizados na execução.
 '''
-
 
 CONCLUSAO = '''
 \\section{{Conclusões}}
