@@ -18,7 +18,7 @@ import requests
 import hashlib
 
 SIA_RELEVANT_FIELDS = np.array(['PA_CMP', 'PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR'])
-SIH_RELEVANT_FIELDS = np.array(['SP_AA', 'SP_MM','SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO'])
+SIH_RELEVANT_FIELDS = np.array(['ANO_CMPT', 'MES_CMPT', 'PROC_REA', 'VAL_TOT'])
 
 def br_money(value: float) -> str:
     return f"{value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
@@ -208,7 +208,7 @@ class ProjPaths:
 
     @staticmethod
     def create_dbf2csv():
-        if not os.path.exists(ProjPaths.BLAST_DBF_PATH):
+        if not os.path.exists(ProjPaths.DBF2CSV_PATH):
             os.chdir(ProjPaths.BINARIES_DIR)
             subprocess.run(["git", "clone", "https://github.com/marcolino5/dbc2csv.git"],
                 capture_output=True,
@@ -431,13 +431,8 @@ class ProjParams:
         ProjParams.NOME_FANTASIA = sys.argv[11]
         ProjParams.NUMERO_PROCESSO = sys.argv[12]
         ProjParams.MODE = sys.argv[13]
-        ProjParams.DATA_DISTRIBUICAO = sys.argv[14]
+        ProjParams.DATA_DISTRIBUICAO = Date.from_string(sys.argv[14])
         ProjParams.load_cnpj()
-
-        # Verifica se temos o 15º argumento (o CNPJ)
-        if len(sys.argv) > 14:
-            ProjParams.CNPJ = sys.argv[14]
-            print(f"DEBUG: CNPJ CAPTURADO COM SUCESSO: {ProjParams.CNPJ}")
 
     # Consegue CNPJ a partir do CNES, não obrigatório (depende de mais uma API externa do governo)
     @staticmethod
@@ -571,7 +566,7 @@ class Downloads:
     def download_file(file: str):
         PREFIX_LOCATION = {
         'PA': ProjPaths.SIA_DOWNLOAD_DIR,
-        'SP': ProjPaths.SIH_DOWNLOAD_DIR 
+        'RD': ProjPaths.SIH_DOWNLOAD_DIR 
         }
         file_name = path.split(file)[-1]
         file_prefix = file_name[:2]
@@ -609,7 +604,7 @@ class Downloads:
         metadata = []
         PREFIX_LOCATION = {
             'PA': ProjPaths.SIA_DOWNLOAD_DIR,
-            'SP': ProjPaths.SIH_DOWNLOAD_DIR
+            'RD': ProjPaths.SIH_DOWNLOAD_DIR
         }
     
         for file in files:
@@ -664,7 +659,7 @@ class Downloads:
     def find_files(sistema: str, estado: str, inicio: Date, fim: Date):
         SEARCH_RREFIXES = {
         'SIA': 'PA',
-        'SIH': 'SP'
+        'SIH': 'RD'
         }
 
         SEARCH_DIRS = {
@@ -740,17 +735,17 @@ class Conversions:
     
         PREFIX_SYSTEM = {
             'PA': 'SIA',
-            'SP': 'SIH'
+            'RD': 'SIH'
         }
     
         PREFIX_CSV_DIR = {
             'PA': ProjPaths.SIA_CSVS_DIR,
-            'SP': ProjPaths.SIH_CSVS_DIR
+            'RD': ProjPaths.SIH_CSVS_DIR
         }
     
         PREFIX_DBF_DIR = {
             'PA': ProjPaths.SIA_DBFS_DIR,
-            'SP': ProjPaths.SIH_DBFS_DIR
+            'RD': ProjPaths.SIH_DBFS_DIR
         }
     
         try:
@@ -1339,39 +1334,44 @@ class Processing:
         return (tunep_unit_val * int(row['SP_QTD_ATO']) if tunep_unit_val != None else got * 1.5)
 
 
+    
     @staticmethod
     def month_SIH_IVR(file_path: str) -> MonthInfo:
         expected = set(SIH_RELEVANT_FIELDS)
-
+    
         if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
             return None
-        
+    
         try:
-            df = pd.read_csv(file_path, encoding="latin1", sep=None, engine="python")
+            df = pd.read_csv(file_path, encoding="latin1", sep=None, engine="python", dtype={'PROC_REA': str})
         except Exception:
-             df = pd.read_csv(file_path, encoding="latin1", sep=';', engine="python")
+            df = pd.read_csv(file_path, encoding="latin1", sep=';', engine="python", dtype={'PROC_REA': str})
         df.columns = df.columns.str.strip()
-        
+    
         if not expected.issubset(set(df.columns)):
-            print("File does not match SIH schema:", file_path)
+            print("File does not match SIH RD schema:", file_path)
             return None
-
-        df = df[SIH_RELEVANT_FIELDS]
+    
+        df = df[SIH_RELEVANT_FIELDS].copy()
+        df['VAL_TOT'] = pd.to_numeric(df['VAL_TOT'], errors='raise')
+        df['QTD_AIH'] = 1
+    
         when = Date.from_sus_file_name(file_path)
         rate = InterestRate.complete_rate_split(when, ProjParams.END_INTEREST)
-        brute_sum = df["SP_VALATO"].sum()
-        df['VALOR_DEVIDO_IVR'] = df["SP_VALATO"] * 1.5
+        brute_sum = df["VAL_TOT"].sum()
+        df['VALOR_DEVIDO_IVR'] = df["VAL_TOT"] * 1.5
         df['TIPO_SISTEMA'] = 'SIH'
         df['FONTE'] = os.path.basename(file_path)
-
-        colunas_detalhe = ['SP_ATOPROF', 'SP_QTD_ATO', 'SP_VALATO', 'VALOR_DEVIDO_IVR', 'FONTE']
+    
+        colunas_detalhe = ['PROC_REA', 'QTD_AIH', 'VAL_TOT', 'VALOR_DEVIDO_IVR', 'FONTE']
         procedimentos_lista = df[colunas_detalhe + ['TIPO_SISTEMA']].to_dict('records')
-
-        print(f"DEBUG PYTHON: Encontrei {len(procedimentos_lista)} procedimentos para o mês {when}")
+    
+        print(f"DEBUG PYTHON: Encontrei {len(procedimentos_lista)} AIHs para o mês {when}")
         if procedimentos_lista:
             print(f"Exemplo do primeiro item: {procedimentos_lista[0]}")
-        
+    
         return MonthInfo(when, 'IVR', 'SIH', brute_sum*1.5, brute_sum, rate, procedimentos_lista)
+
     
     @staticmethod
     def month_SIH_TUNEP(file_path: str) -> MonthInfo:
@@ -1424,7 +1424,6 @@ class Processing:
 
     @staticmethod
     def months(sia_files: list[str], sih_files: list[str], method: str) -> list[MonthInfo]:
-
 
         FUNCTION_TABLE = {
             'IVR': [Processing.month_SIA_IVR, Processing.month_SIH_IVR],
@@ -1660,13 +1659,13 @@ class LatexBuilder:
                 continue
         
             for p in m.procedimentos:
-                code = p.get('PA_PROC_ID', p.get('SP_ATOPROF', '?'))
+                code = p.get('PA_PROC_ID', p.get('PROC_REA', '?'))
                 tipo_display = p.get('TIPO_SISTEMA', '-')
                 fonte = p.get('FONTE', '-')
                 
                 try:
-                    qtd = int((p.get('PA_QTDAPR', p.get('SP_QTD_ATO', 0))))
-                    paid = float((p.get('PA_VALAPR', p.get('SP_VALATO', 0.0))))
+                    qtd = int(p.get('PA_QTDAPR', p.get('QTD_AIH', 0)))
+                    paid = float(p.get('PA_VALAPR', p.get('VAL_TOT', 0.0)))
                     due = float((p.get('VALOR_DEVIDO_IVR', 0.0))) - paid
                 except:
                     continue
