@@ -1757,7 +1757,7 @@ class LatexBuilder:
         except OSError:
             versao = "Não disponível"
         
-        latex += f"Versão do código & \\texttt{{{versao}}} \\\\ \\hline\n"
+        latex += f"Versão do código (python) & \\texttt{{{versao}}} \\\\ \\hline\\hline\n"
 
     
         for item in download_info:
