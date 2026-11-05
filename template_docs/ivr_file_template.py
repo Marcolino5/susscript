@@ -24,6 +24,7 @@ DESCRICAO = '''
 	\\item{{Período de produção: {inicio_producao} a {fim_producao}}}
     \\item{{Data-base do cálculo: {data_base}}}
 	\\item{{Data de citação: {data_citacao}}}
+	\\item{{Data de distribuição: {data_distribuicao}}}
 \\end{{itemize}}
 
 
