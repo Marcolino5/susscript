@@ -967,28 +967,28 @@ class Tunep:
         return None
 
     @staticmethod
-def get_description(code: str, system_type: str, month: Date) -> str:
-    ano = month.year
-    if ano <= 2019:
-        tabela = Tunep.TABELAS_HISTORICAS[2019]
-    elif ano <= 2021:
-        tabela = Tunep.TABELAS_HISTORICAS[2021]
-    elif ano <= 2025:
-        tabela = Tunep.TABELAS_HISTORICAS[2025]
-    else:
-        tabela = Tunep.TABELA_GERAL
-
-    if tabela is not None and not tabela.empty:
-        code_safe = str(code).strip().zfill(10)
-        try:
-            row = tabela.loc[code_safe]
-            if isinstance(row, pd.DataFrame):
-                return str(row["procedimento"].iloc[0])
-            return str(row["procedimento"])
-        except KeyError:
-            pass
-
-    return "Descrição não encontrada"
+    def get_description(code: str, system_type: str, month: Date) -> str:
+        ano = month.year
+        if ano <= 2019:
+            tabela = Tunep.TABELAS_HISTORICAS[2019]
+        elif ano <= 2021:
+            tabela = Tunep.TABELAS_HISTORICAS[2021]
+        elif ano <= 2025:
+            tabela = Tunep.TABELAS_HISTORICAS[2025]
+        else:
+            tabela = Tunep.TABELA_GERAL
+    
+        if tabela is not None and not tabela.empty:
+            code_safe = str(code).strip().zfill(10)
+            try:
+                row = tabela.loc[code_safe]
+                if isinstance(row, pd.DataFrame):
+                    return str(row["procedimento"].iloc[0])
+                return str(row["procedimento"])
+            except KeyError:
+                pass
+    
+        return "Descrição não encontrada"
 
 class MonthInfo:
     def __init__(self, when: Date, method: str, src: str, expected: float, got: float, rates: tuple[float, float, float], procedimentos: list = None) -> None:
