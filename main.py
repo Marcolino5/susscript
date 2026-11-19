@@ -17,6 +17,7 @@ import math
 import requests
 import hashlib
 
+# Procedimento TUNEP retirado, estrutura mantida caso optem por desenvolver essa parte no futuro
 SIA_RELEVANT_FIELDS = np.array(['PA_CMP', 'PA_PROC_ID', 'PA_QTDAPR', 'PA_VALAPR'])
 SIH_RELEVANT_FIELDS = np.array(['ANO_CMPT', 'MES_CMPT', 'PROC_REA', 'VAL_TOT'])
 
@@ -88,8 +89,8 @@ class ProjPaths:
         ProjPaths.TOTAL_REPORT_PATH = path.join(ProjPaths.RESULTS_DIR, "total.csv")
     
         ProjPaths.LATEX_FILE_PATH = path.join(ProjPaths.LATEX_DIR, "laudo.tex")
-        ProjPaths.SIA_TUNEP_TABLE_PATH = path.join(ProjPaths.TABLES_DIR, "tabela_tunep_sia.csv")
-        ProjPaths.SIH_TUNEP_TABLE_PATH = path.join(ProjPaths.TABLES_DIR, "tabela_tunep_sih.csv")
+        # ProjPaths.SIA_TUNEP_TABLE_PATH = path.join(ProjPaths.TABLES_DIR, "tabela_tunep_sia.csv")
+        # ProjPaths.SIH_TUNEP_TABLE_PATH = path.join(ProjPaths.TABLES_DIR, "tabela_tunep_sih.csv")
         ProjPaths.PROC_TABLE_PATH = path.join(ProjPaths.TABLES_DIR, "tabela_proc.csv")
 
 
@@ -889,7 +890,8 @@ class Conversions:
 class Tunep:
     TABELA_DE_CONVERSAO_SIA: pd.DataFrame
     TABELA_DE_CONVERSAO_SIH: pd.DataFrame
-    TABELA_GERAL: pd.DataFrame = None # tabela do rep do rafa
+    TABELA_GERAL: pd.DataFrame = None
+    TABELAS_HISTORICAS: dict[int, pd.DataFrame] = {}
 
     _TYPE_MAPPING = {'SIA': 'A', 'SIH': 'H'}
 
@@ -923,6 +925,24 @@ class Tunep:
             else:
                 raise Exception("'tables' não existe, CWD:", os.getcwd())
 
+        # Códigos mudam com o tempo, carrega as tabelas históricas para usar o código daquele tempo
+        pasta = os.path.dirname(ProjPaths.PROC_TABLE_PATH)
+        arquivos_historicos = {2019: "tabela_proc_2016_2019.csv", 2021: "tabela_proc_2020_2021.csv", 2025: "tabela_proc_2022_2025.csv"}
+
+        Tunep.TABELAS_HISTORICAS = {}
+
+        for ano, nome_arquivo in arquivos_historicos.items():
+            caminho = os.path.join(pasta, nome_arquivo)
+
+            try:
+                df = pd.read_csv(caminho, usecols=['codigo', 'procedimento'], dtype=str)
+                df['codigo'] = df['codigo'].str.strip().str.zfill(10)
+                Tunep.TABELAS_HISTORICAS[ano] = (df.set_index('codigo').copy())
+
+            except Exception as e:
+                print(f"Erro ao carregar tabela histórica {ano}: {e}")
+                raise
+
 
     @staticmethod
     def _get_base_value(code: str, procedure_type: str) -> float|None:
@@ -947,18 +967,28 @@ class Tunep:
         return None
 
     @staticmethod
-    def get_description(code: str, system_type: str) -> str:
-        if Tunep.TABELA_GERAL is not None and not Tunep.TABELA_GERAL.empty:
-            code_safe = str(code).strip().zfill(10)
-            try:
-                row_geral = Tunep.TABELA_GERAL.loc[code_safe]
-                if isinstance(row_geral, pd.DataFrame):
-                    return str(row_geral['procedimento'].iloc[0])
-                return str(row_geral['procedimento'])
-            except:
-                pass # Falhou nas duas
-            
-        return "Descrição não encontrada"
+def get_description(code: str, system_type: str, month) -> str:
+    ano = month.year
+    if ano <= 2019:
+        tabela = Tunep.TABELAS_HISTORICAS[2019]
+    elif ano <= 2021:
+        tabela = Tunep.TABELAS_HISTORICAS[2021]
+    elif ano <= 2025:
+        tabela = Tunep.TABELAS_HISTORICAS[2025]
+    else:
+        tabela = Tunep.TABELA_GERAL
+
+    if tabela is not None and not tabela.empty:
+        code_safe = str(code).strip().zfill(10)
+        try:
+            row = tabela.loc[code_safe]
+            if isinstance(row, pd.DataFrame):
+                return str(row["procedimento"].iloc[0])
+            return str(row["procedimento"])
+        except KeyError:
+            pass
+
+    return "Descrição não encontrada"
 
 class MonthInfo:
     def __init__(self, when: Date, method: str, src: str, expected: float, got: float, rates: tuple[float, float, float], procedimentos: list = None) -> None:
@@ -1682,7 +1712,7 @@ class LatexBuilder:
 
         for data in aggregated.values():
         
-            descricao = Tunep.get_description(data["code"], data["tipo"])
+            descricao = Tunep.get_description(data["code"], data["tipo"], data["month"])
             descricao = descricao.replace('&', '\\&').replace('%', '\\%').replace('_', '\\_')
             source = ", ".join(sorted(map(str, data["source"])))
             source = (
