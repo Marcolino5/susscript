@@ -967,7 +967,7 @@ class Tunep:
         return None
 
     @staticmethod
-def get_description(code: str, system_type: str, month) -> str:
+def get_description(code: str, system_type: str, month: Date) -> str:
     ano = month.year
     if ano <= 2019:
         tabela = Tunep.TABELAS_HISTORICAS[2019]
